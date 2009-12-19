@@ -291,18 +291,26 @@ INVALID_RECIPIENT_RE = [
         re.compile('.*-?(?:OUTGOING|RELAY)@', re.IGNORECASE),
 
         # Mailinglists
-        re.compile('LISTSERV@', re.IGNORECASE),
+        re.compile(
+        '''
+        (?:
+            listserv
+        |   mailman
+        |   majordomo?
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
         re.compile(
         '''
         .*- # start of suffix
         (?:
             admin
-        |   bounces
+        |   bounces?
         |   confirm
         |   join
         |   leave
-        |   owner
-        |   request
+        |   owners?
+        |   requests?
         |   (?:un)?subscribe
         )
         @
