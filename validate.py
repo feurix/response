@@ -80,11 +80,13 @@ def validate_sender(message):
     Return True if yes, False if not'''
 
     sender = message.get_unixfrom()
+    result = True
 
     log.debug('Validating sender: %s' % sender)
 
-    # TODO
-    result = True
+    # Never respond to the null sender
+    if not sender or sender == '<>':
+        result = False
 
     if result:
         log.debug('Sender validation successful!')
