@@ -2,32 +2,44 @@
 
 '''Simple LMTP client implementation to test response-lmtp'''
 
+import sys
 import smtplib
 
+from email.mime.text import MIMEText
 
-def prompt(prompt):
-    return raw_input(prompt).strip()
+if len(sys.argv) < 4 or \
+  (len(sys.argv) > 4 and len(sys.argv) < 6):
+    print('Usage: %s FROM TO SUBJECT [HEADER_NAME HEADER_VALUE]' % sys.argv[0])
+    sys.exit(1)
 
-fromaddr = prompt("From: ")
-toaddrs  = prompt("To: ").split()
-print "Enter message, end with ^D (Unix) or ^Z (Windows):"
+msg = MIMEText(
+'''This is a TEST
+body in text/plain.
 
-# Add the From: and To: headers at the start!
-msg = ("From: %s\r\nTo: %s\r\n\r\n"
-       % (fromaddr, ", ".join(toaddrs)))
-while 1:
-    try:
-        line = raw_input()
-    except EOFError:
-        break
-    if not line:
-        break
-    msg = msg + line
+Best regards,
+John
+''')
 
-print "Message length is " + repr(len(msg))
+msg['From'] = sys.argv[1]
+msg['To'] = sys.argv[2]
+msg['Subject'] = sys.argv[3]
+
+try:
+    if sys.argv[4]:
+        msg.add_header(sys.argv[4], sys.argv[5])
+except:
+    pass
+
+print(
+'''
+
+Message length is %s
+Sending message...
+
+''' % repr(len(msg.as_string())))
 
 server = smtplib.LMTP('localhost', 10024)
 server.set_debuglevel(1)
-server.sendmail(fromaddr, toaddrs, msg)
+server.sendmail(sys.argv[1], sys.argv[2], msg.as_string())
 server.quit()
 
