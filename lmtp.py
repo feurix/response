@@ -135,13 +135,11 @@ class LMTPChannel(asynchat.async_chat):
                         message,
                         )
                 except exception.ProcessError, e:
+                    # Note: A softfail doesn't make sense here.
                     if not self.__server.config.failsafe:
                         if self.__server.config.hardfail:
                             self.push('552 5.5.1 Error processing message')
-                        else:
-                            self.push('451 4.3.1 Error processing message, ' \
-                                      'try again later')
-                        return
+                            return
 
             # Ready for the next message
             self.reset()
