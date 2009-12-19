@@ -331,6 +331,128 @@ INVALID_RECIPIENT_RE = [
 
 ] # end of recipient regexps
 
+
+#
+# List of INVALID HEADER NAME regular expressions, matched against all headers
+# of a parsed message. Note that this only matches the header name, not the
+# value. Configure INVALID_HEADER_VALUE_RE if you want to do that.
+#
+INVALID_HEADER_NAME_RE = [
+
+        # Mailing lists
+        re.compile('Mailing-?List', re.IGNORECASE),
+        re.compile('(?:Mailing)?-?List-.+', re.IGNORECASE),
+        re.compile('X-.*List', re.IGNORECASE),
+        re.compile(
+        '''
+        X-
+        (?:
+            Sent-To
+        |   (?:
+                List-?processor
+            |   Mailman
+            )
+            -
+            Version
+        )
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Resent
+        re.compile('Resent-(?:Message-ID|Sender)', re.IGNORECASE),
+
+        # Misc
+        re.compile(
+        '''
+        X-
+        (?:
+            Loop
+        |   Cron
+        |   Autore(?:sponse|ply)
+        |   Auto-.+
+        )
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        re.compile(
+        '''
+        (?:
+            Approved-By
+        |   BestServHost
+        )
+        ''', re.VERBOSE | re.IGNORECASE),
+
+] # end of invalid header name regexps
+
+
+#
+# List of INVALID HEADER VALUE regular expressions, matched against all headers
+# of a parsed message. Note that this is always a pair of the regexp for the
+# name and a list of regexps for the possible header values:
+#
+#   [
+#       (HEADER_NAME_1_RE, [HEADER_1_VALUE_RE_1, HEADER_1_VALUE_RE_2, ...]),
+#       (HEADER_NAME_2_RE, [HEADER_2_VALUE_RE_1, HEADER_2_VALUE_RE_2, ...]),
+#       (..., [...]),
+#   ]
+#
+INVALID_HEADER_VALUE_RE = [
+
+        #
+        # The magic precedence header :-)
+        #
+        (   # Header-Name RE
+            re.compile('.*Precedence.*', re.IGNORECASE),
+
+            [   # Header-Value REs
+                re.compile('.*(?:bulk|junk|list).*', re.IGNORECASE),
+            ]
+        ),
+
+        #
+        # MimeOLE
+        #
+        (   # Header-Name RE
+            re.compile('MimeOLE', re.IGNORECASE),
+
+            [   # Header-Value REs
+                re.compile('.*by.*php.*', re.IGNORECASE),
+            ]
+        ),
+
+        #
+        # Marked as spam
+        #
+        (   # Header-Name RE
+            re.compile('X-Spam(?:-?Flag)', re.IGNORECASE),
+
+            [   # Header-Value REs
+                re.compile('.*Yes.*', re.IGNORECASE),
+            ]
+        ),
+
+        #
+        # Subjects
+        #
+        (   # Header-Name RE
+            re.compile('Subject', re.IGNORECASE),
+
+            [   # Header-Value REs
+                re.compile('.*Out.*of.*office.*', re.IGNORECASE),
+                re.compile('Auto[ -_]?Re(?:sponse|ply)$', re.IGNORECASE),
+
+                # Subject starts with...
+                re.compile(
+                '''
+                (?:
+                    Cron
+                |   News(?:letter)?
+                )
+                ''', re.VERBOSE | re.IGNORECASE),
+            ]
+        ),
+
+] # end of invalid header value regexps
+
+
 def validate_headers(message):
     '''Header validation:
 
@@ -339,18 +461,41 @@ def validate_headers(message):
 
     Return: True if yes, False if not'''
 
+    invalid_header = (None, None)
+    result = True
+
     log.debug('Validating headers')
 
-    # TODO
-    result = True
+    # Validate header *NAMES*
+    for header_name in message.keys():
+        for regexp in INVALID_HEADER_NAME_RE:
+            if regexp.match(header_name):
+                invalid_header = (header_name, message.get(header_name))
+                result = False
+                break
+        if not result:
+            break
+
+    # Validate header *VALUES*
+    for header_name, header_value in message.items():
+        for name_regexp, value_regexps in INVALID_HEADER_VALUE_RE:
+            if name_regexp.match(header_name):
+                for value_regexp in value_regexps:
+                    if value_regexp.match(header_value):
+                        invalid_header = (header_name, header_value)
+                        result = False
+                        break
+            if not result:
+                break
+        if not result:
+            break
 
     if result:
         log.debug('Header validation successful!')
     else:
         log.debug('Header validation failed!')
-        raise exception.InvalidHeaderError('Invalid header found!')
-
-    return result
+        raise exception.InvalidHeaderError('Invalid header: %s: %s'
+                % invalid_header)
 
 
 def validate_recipient(manager, message):
