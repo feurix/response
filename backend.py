@@ -214,7 +214,8 @@ class Manager(object):
 
     def close(self):
         if self.connection:
-            self.backend.close_cursor(self.cursor)
+            if self.cursor:
+                self.backend.close_cursor(self.cursor)
             self.backend.commit(self.connection)
             self.backend.disconnect(self.connection)
 
