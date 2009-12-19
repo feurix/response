@@ -29,6 +29,10 @@ from logger import getModuleLog
 log = getModuleLog('validate')
 
 
+#
+# List of INVALID SENDER regular expressions, matched against the sender
+# address as given in the protocol command channel, using "MAIL FROM".
+#
 INVALID_SENDER_RE = [
 
         # The null sender, used for automated warnings, errors, notifications
@@ -43,6 +47,7 @@ INVALID_SENDER_RE = [
         '''
         (?:
             abuse
+        |   root
         |   (?:
                 (?:
                     host
@@ -227,6 +232,72 @@ INVALID_SENDER_RE = [
 ] # end of sender regexps
 
 
+
+#
+# List of INVALID RECIPIENT regular expressions, matched against the recipient
+# address as given in the protocol command channel, using "RCPT TO".
+#
+# Add all of your local addresses here that won't ever configure an
+# autoresponse.
+INVALID_RECIPIENT_RE = [
+
+        # Mailer daemons
+        re.compile('MAILER-?(?:DAEMON)?@', re.IGNORECASE),
+
+        # Administrative
+        re.compile(
+        '''
+        (?:
+            abuse
+        |   root
+        |   (?:
+                (?:
+                    host
+                |   post
+                |   web
+                )
+                master
+            )
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Relays
+        re.compile('.*-?(?:OUTGOING|RELAY)@', re.IGNORECASE),
+
+        # Mailinglists
+        re.compile('LISTSERV@', re.IGNORECASE),
+        re.compile(
+        '''
+        .*- # start of suffix
+        (?:
+            admin
+        |   bounces
+        |   confirm
+        |   join
+        |   leave
+        |   owner
+        |   request
+        |   (?:un)?subscribe
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Obvious cases...
+        re.compile(
+        '''
+        no
+        (?:
+            reply
+        |   return
+        |   answere?s?
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+
+] # end of recipient regexps
+
 def validate_headers(message):
     '''Header validation:
 
@@ -258,16 +329,28 @@ def validate_recipient(manager, message):
     Return: True if yes, False if not'''
 
     recipient = message.get_unixto()
+    result = True
 
     log.debug('Validating recipient: %s' % recipient)
 
-    try:
-        manager.validate_recipient(recipient)
-        log.debug('Recipient validation successful!')
-    except Exception, e:
+    # Validate against the list of invalid recipient regexps before
+    # involving the backend in any way
+    for regexp in INVALID_RECIPIENT_RE:
+        if regexp.match(recipient):
+            result = False
+            break
+
+    if result:
+        try:
+            manager.validate_recipient(recipient)
+            log.debug('Recipient validation successful!')
+        except Exception, e:
+            log.debug('Recipient validation failed!')
+            raise exception.InvalidRecipientError('Invalid recipient %s - %s'
+                    % (recipient, e))
+    else:
         log.debug('Recipient validation failed!')
-        raise exception.InvalidRecipientError('Invalid recipient %s - %s'
-                % (recipient, e))
+        raise exception.InvalidRecipientError('Invalid recipient %s' % recipient)
 
 
 def validate_sender(message):
@@ -294,8 +377,6 @@ def validate_sender(message):
     else:
         log.debug('Sender validation failed!')
         raise exception.InvalidSenderError('Invalid sender %s' % sender)
-
-    return result
 
 
 def validate(manager, message):
