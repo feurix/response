@@ -22,10 +22,209 @@
 
 from globals import __author__, __copyright__, __license__, __version__
 
+import re
 import exception
 
 from logger import getModuleLog
 log = getModuleLog('validate')
+
+
+INVALID_SENDER_RE = [
+
+        # The null sender, used for automated warnings, errors, notifications
+        # and other stuff that should not be replied to.
+        re.compile('<>'),
+
+        # Mailer daemons
+        re.compile('MAILER-?(?:DAEMON)?@', re.IGNORECASE),
+
+        # Administrative
+        re.compile(
+        '''
+        (?:
+            abuse
+        |   (?:
+                (?:
+                    host
+                |   post
+                |   web
+                )
+                master
+            )
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Relays
+        re.compile('.*-?(?:OUTGOING|RELAY)@', re.IGNORECASE),
+
+        # Mailinglists
+        re.compile('LISTSERV@', re.IGNORECASE),
+        re.compile(
+        '''
+        .*- # start of suffix
+        (?:
+            admin
+        |   bounces
+        |   confirm
+        |   join
+        |   leave
+        |   owner
+        |   request
+        |   (?:un)?subscribe
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Obvious cases...
+        re.compile(
+        '''
+        no
+        (?:
+            reply
+        |   return
+        |   answere?s?
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        #
+        # *** Regular expressions you might want to change ***
+        #
+        # Remember:
+        #
+        #  One autoresponse less is better than one too much! :-)
+        #
+
+        # Sender domains
+        # http://en.wikipedia.org/wiki/List_of_social_networking_websites
+        re.compile(
+        '''
+        .*
+        @
+        .*
+        (?:
+        # Huge online stores
+            ebay
+        |   paypal
+        |   amazon
+
+        # Huge social networking sites
+        # http://en.wikipedia.org/wiki/List_of_social_networking_websites
+        |   facebook
+        |   myspace
+        |   twitter
+        |   linkedin
+        |   last.fm
+        |   live.com
+        |   xing
+        |   badoo
+        |   bebo
+        |   buzznet
+        |   classmates
+        |   dating
+        |   hi5
+        |   hyves
+        |   imeem
+        |   kaixin001
+        |   meetup
+        |   qzone
+        |   renren
+        |   studivz
+        |   schuelervz
+        |   meinvz
+
+        # Gaming sites
+        |   steam
+        |   gamespy
+        |   fileplanet
+        |   filefront
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Newsletters
+        re.compile('.*news.*', re.IGNORECASE),
+
+        # Automated mail
+        re.compile(
+        '''
+        .*
+        (?:
+            info(?:rmation)?
+        |   cron
+        |   robot
+        |   report
+        |   error
+        |   counter
+        |   sms
+        |   reminder
+        |   system
+        |   status
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Non-personal / Business mail
+        re.compile(
+        '''
+        .*
+        (?:
+            shop
+        |   invoice
+        |   sales
+        |   legal
+        |   support
+        |   service
+        |   ticket
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Password / Account stuff
+        re.compile(
+        '''
+        .*
+        (?:
+            password
+        |   account
+        |   reset
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Community
+        re.compile(
+        '''
+        .*
+        (?:
+            community
+        |   board
+        |   blog
+        |   forum
+        |   picture
+        |   upload
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # German variants
+        re.compile(
+        '''
+        .*
+        (?:
+            rechnung
+        |   bestell
+        |   (?:be)?zahl
+        |   (?:ver)?warnung
+        |   versend
+        |   versand
+        |   bestaetig
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+] # end of sender regexps
 
 
 def validate_headers(message):
@@ -84,9 +283,11 @@ def validate_sender(message):
 
     log.debug('Validating sender: %s' % sender)
 
-    # Never respond to the null sender
-    if not sender or sender == '<>':
-        result = False
+    # Validate against the huge list of invalid sender regexps
+    for regexp in INVALID_SENDER_RE:
+        if regexp.match(sender):
+            result = False
+            break
 
     if result:
         log.debug('Sender validation successful!')
