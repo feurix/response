@@ -29,6 +29,9 @@ from logger import getModuleLog
 log = getModuleLog('validate')
 
 
+# Note for all regexps: We match _after_ parsing the message headers.
+# No need to test for None, match space or a trailing colon in header names.
+
 #
 # List of INVALID SENDER regular expressions, matched against the sender
 # address as given in the protocol command channel, using "MAIL FROM".
@@ -40,14 +43,21 @@ INVALID_SENDER_RE = [
         re.compile('<>'),
 
         # Mailer daemons
-        re.compile('MAILER-?(?:DAEMON)?@', re.IGNORECASE),
+        re.compile('MAILER[-_]?(?:DAEMON)?@', re.IGNORECASE),
 
         # Administrative
         re.compile(
         '''
         (?:
             abuse
+        |   bounce
+        |   daemon
+        |   server
+        |   httpd?
+        |   www
+        |   www-data
         |   root
+        |   nobody
         |   (?:
                 (?:
                     host
@@ -64,18 +74,26 @@ INVALID_SENDER_RE = [
         re.compile('.*-?(?:OUTGOING|RELAY)@', re.IGNORECASE),
 
         # Mailinglists
-        re.compile('LISTSERV@', re.IGNORECASE),
+        re.compile(
+        '''
+        (?:
+            listserv
+        |   mailman
+        |   majordomo?
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
         re.compile(
         '''
         .*- # start of suffix
         (?:
             admin
-        |   bounces
+        |   bounces?
         |   confirm
         |   join
         |   leave
-        |   owner
-        |   request
+        |   owners?
+        |   requests?
         |   (?:un)?subscribe
         )
         @
@@ -242,14 +260,21 @@ INVALID_SENDER_RE = [
 INVALID_RECIPIENT_RE = [
 
         # Mailer daemons
-        re.compile('MAILER-?(?:DAEMON)?@', re.IGNORECASE),
+        re.compile('MAILER[-_]?(?:DAEMON)?@', re.IGNORECASE),
 
         # Administrative
         re.compile(
         '''
         (?:
             abuse
+        |   bounce
+        |   daemon
+        |   server
+        |   httpd?
+        |   www
+        |   www-data
         |   root
+        |   nobody
         |   (?:
                 (?:
                     host
