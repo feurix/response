@@ -1,0 +1,121 @@
+RESPONSE - The Response Project
+===============================
+Out of Office - Vacation - However you want to name it!
+
+Author:  John Feuerstein <john@feurix.com>
+License: GPLv3
+
+First Release:   Version 0.1, Dec 2009
+Current Release: Version 0.1, Dec 2009
+
+Development URL: https://labs.feurix.org/mail/response/
+
+Feel free to contribute! Clone the repo, send me a pull request, patches... :)
+
+
+Description of Response
+-----------------------
+
+Response is a suite of tools and daemons used to implement automatic e-mail
+responses, also called "Out of Office" or "Vacation" messages.
+
+It tries hard to do that "the correct way", ie. not responding to e-mails that
+should not be responded to. All of the validation code can easily be modified
+to suite your needs, however we try hard to ship sane defaults.
+
+It supports response limits per recipient in a given time and comes with a
+default setting of the recommended "one autoresponse per recipient in 7 days".
+
+Response was written to get rid of some common headaches to all mail
+administrators caused by poorly written autoresponse-scripts.
+
+In fact, most of current response implementations out there are a pain in the
+ass. They cause a lot of so called Backscatter, Auto-Blacklisting of the whole
+mailserver, inconvenience for recipients of unlimited multiple responses, and
+probably more...
+
+
+RDBMS driven Backend
+--------------------
+
+Response has scalability in mind. Using .vacation files or local MDA filters
+and scripts is not applicable.
+
+Response uses a RDBMS as it's backend for response-address-configurations and
+response-recordings. You are free to use custom SQL queries for every
+operation, even though we ship usable defaults to get you started easily.
+
+Currently, MySQL is the only supported database backend. PostgreSQL support is
+already prepared and quite easy to implement. Feel free to contribute! :-)
+
+The database adapters use connection pooling and you can easily configure the
+error behaviour, ie. ask the delivering MTA to try again later (softfail), to
+bounce the message and even inform the sender (not suggested, hardfail) or to
+always fake success (failsafe).
+
+
+Response LMTP Daemon
+--------------------
+
+The main autoresponse validation and recording component (response-lmtp) is
+implemented as a LMTP daemon doing message validation, queueing new pending
+response records and recording the arrival of the last valid message to a
+configured autoresponse address. A not yet implemented SMTP variant is pretty
+easy and may be implemented in the future, if enough users are asking for it.
+(Feel free to contribute... :)
+
+Logging can go to stderr or directly to syslog. You can freely configure the
+syslog facility.
+
+The LMTP daemon should be used as a final secondary transport by your MTA.
+
+This way, weird autoresponse subdomains or extraneous autoresponse address
+formats are NOT required.
+
+If your MTA is configured correctly (see examples) your recipient (no matter
+if local or virtual) will get the e-mail as usual and the autoresponse will
+just work(tm).
+
+If you know your MTA and can work with transport tables you get great
+flexibility. This is in contrast to all poorly designed autoresponse scripts
+and sieve filters, executing once per message, being slow, inflexible, bound
+to one mailserver, ...
+
+
+Response Notify
+---------------
+
+The autoresponse-sending component (response-notify) is completely independent
+and can run on the same or a different machine. It can send autoresponses
+using any MX you configure using SMTP, SMTP-AUTH, or a local sendmail binary.
+
+Response-notify is currently invoked by Cron and hence can run in custom
+intervals. However you want it.
+
+
+Security
+--------
+
+Each component may run as a different, isolated system user. If you prepare
+the needed environment, they may even run chrooted. No local file access,
+except for the configuration and libraries, is needed. Securing your RDBMS is
+a chapter on its own. To keep it short, you may use different RDBMS-users for
+each component, restricting their access to the minimum needed to perform the
+configured queries.
+
+
+Final words
+-----------
+
+Response is scalable, you can use it on one mailserver or a whole
+infrastructure.
+
+Configuring autoresponses is as easy as doing a single SQL query. This way you
+can easily allow your users to configure them using any Webmail application.
+(See the examples for a simple Roundcube plugin)
+
+Finally, if you have any comments, suggestions, critics, new validation
+filters, better SQL, whatever -- feel free to contribute. Thanks! :-)
+
+
+vim: tw=78

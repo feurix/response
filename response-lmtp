@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''Response Project - LMTP Daemon'''
+
+# Copyright (C) 2009 John Feuerstein <john@feurix.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+from globals import __author__, __copyright__, __license__, __version__
+
+import signal
+import sys
+import logger
+import exception
+
+from asyncore import loop
+from config import Config
+from optparse import OptionParser
+from lmtp import LMTPServer
+
+
+# Option parsing
+version = '%prog version ' + __version__
+usage = 'Usage: %prog [options]'
+
+parser = OptionParser(usage=usage, version=version)
+
+parser.add_option('-d', '--debug', action='store_true', dest='debug',
+        help='debug mode')
+parser.add_option('-v', '--verbose', action='store_true', dest='verbose',
+        help='verbose mode')
+parser.add_option('-q', '--quiet', action='store_true', dest='quiet',
+        help='only log errors')
+parser.add_option('-S', '--syslog', action='store_true', dest='syslog',
+        help='log to syslog')
+parser.add_option('--syslog-facility', type='string', action='store',
+        dest='syslog_facility', default='MAIL',
+        help='specify the syslog facility (default: MAIL)')
+parser.add_option('-c', '--config', action='store', dest='config',
+        help='specify an alternate path to the config file,     ' \
+             'default: /etc/response.conf',
+        default='/etc/response.conf')
+
+(options, args) = parser.parse_args()
+
+
+# Prepare
+log = logger.getLog(
+        debug=options.debug,
+        verbose=options.verbose,
+        quiet=options.quiet,
+        syslog=options.syslog,
+        syslog_facility=options.syslog_facility,
+        )
+config = Config(options.config)
+
+# Signal handling
+def signal_handler(signum, frame):
+    if signum == signal.SIGINT:
+        log.warning('Received SIGINT, exiting...')
+        sys.exit(0)
+    elif signum == signal.SIGHUP:
+        log.warning('Received SIGHUP, reloading configuration!')
+        # TODO
+    else:
+        log.warning('Received signal number %d, exiting...' % signum)
+        sys.exit(1)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGHUP, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+
+# Main
+log.warning('%s starting up... (loglevel: %s)' % (parser.get_version(),
+    logger.getLogLevelName(log)))
+
+try:
+    server = LMTPServer(config)
+except exception.BackendError, e:
+    log.critical('Init: %s' % e)
+    sys.exit(1)
+
+try:
+    loop()
+except:
+    # TODO
+    pass
+finally:
+    server.shutdown()
+

@@ -1,0 +1,68 @@
+/*
+ * Response Project - Example / Default Table Schemas
+ *
+ * Copyright (C) 2009 John Feuerstein <john@feurix.com>
+ *
+ * This file is part of the response project.
+ *
+ * Repsonse is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Response is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ *
+ * Note:
+ *
+ *  You are free to use other database names, other table names, custom
+ *  tables, whatever. You may individually configure all SQL queries that
+ *  response does. This is just a basic example of all we need... :-)
+ *
+ */
+
+CREATE DATABASE response;
+USE response;
+
+
+
+CREATE TABLE `autoresponse_config` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `address` varchar(255) NOT NULL UNIQUE,
+    `enabled` bool NOT NULL,
+    `changed` datetime NOT NULL,
+    `expires` datetime NOT NULL,
+    `subject` varchar(255) NOT NULL,
+    `message` longtext NOT NULL
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8
+COMMENT='Response - Autoresponse Configurations';
+
+
+CREATE TABLE `autoresponse_record` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `sender_id` integer NOT NULL,
+    `recipient` varchar(255) NOT NULL,
+    `last` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `sent` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    UNIQUE (`sender_id`, `recipient`)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8
+COMMENT='Response - Autoresponse Notification Records';
+
+
+ALTER TABLE `autoresponse_record`
+ADD CONSTRAINT `autoresponse_sender_refs`
+FOREIGN KEY (`sender_id`)
+REFERENCES `autoresponse_config` (`id`)
+ON DELETE CASCADE;
+
