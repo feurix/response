@@ -342,9 +342,7 @@ INVALID_RECIPIENT_RE = [
 INVALID_HEADER_NAME_RE = [
 
         # Mailing lists
-        re.compile('Mailing-?List', re.IGNORECASE),
-        re.compile('(?:Mailing)?-?List-.+', re.IGNORECASE),
-        re.compile('X-.*List', re.IGNORECASE),
+        re.compile('(?:X-)?(:?Mailing)?-?List', re.IGNORECASE),
         re.compile(
         '''
         X-
