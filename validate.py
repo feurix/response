@@ -521,8 +521,8 @@ def validate_recipient(manager, message):
     # First of all, don't respond to messages that don't list us as one
     # of the primary recipients. This can happen with address rewriting
     # due to virtual aliases.
-    if not recipient in message.getheader('To', default='') \
-    or not recipient in message.getheader('Cc', default=''):
+    if not recipient in message.get('To', failobj='') \
+    or not recipient in message.get('Cc', failobj=''):
         result = False
 
     # Validate against the list of invalid recipient regexps before
