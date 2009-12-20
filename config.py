@@ -77,16 +77,18 @@ class LMTPConfig(object):
     #
     # Assume the original recipient is john@mydomain.tld:
     #
-    # In case of Postfix, we use a mysql virtual alias table to alias the
-    # original recipient to (using a special SELECT):
+    # In case of Postfix, we silently create a copy of each message
+    # whose original recipient has configured and enabled an autoresponse.
+    # The internal recipient of this message is, for example:
     #
-    #   john@mydomain.tld, john#mydomain.tld@response.internal
+    #   john#mydomain.tld@response.internal
     #
     # The original @ was replaced by # and the new target domain is
     # response.internal.  Describing the above line: The mail is finally
     # delivered to the original recipient with whatever transport is configured
-    # for the original target domain. In addition, the mail is delivered to the
-    # internal only response.internal domain, which has a transport map entry:
+    # for the original target domain. In addition, the copy of the mail is
+    # delivered to the internal only response.internal domain, which has a
+    # transport map entry:
     #
     #   repsonse.internal  response:[127.0.0.1]:10024
     #
