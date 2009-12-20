@@ -84,7 +84,7 @@ INVALID_SENDER_RE = [
         @
         ''', re.VERBOSE | re.IGNORECASE),
         re.compile(
-        '''
+        r'''
         .*- # start of suffix
         (?:
             admin
@@ -96,6 +96,7 @@ INVALID_SENDER_RE = [
         |   requests?
         |   (?:un)?subscribe
         )
+        (?:\+.*)?
         @
         ''', re.VERBOSE | re.IGNORECASE),
 
@@ -301,7 +302,7 @@ INVALID_RECIPIENT_RE = [
         @
         ''', re.VERBOSE | re.IGNORECASE),
         re.compile(
-        '''
+        r'''
         .*- # start of suffix
         (?:
             admin
@@ -313,6 +314,7 @@ INVALID_RECIPIENT_RE = [
         |   requests?
         |   (?:un)?subscribe
         )
+        (?:\+.*)?
         @
         ''', re.VERBOSE | re.IGNORECASE),
 
