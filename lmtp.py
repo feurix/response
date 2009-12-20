@@ -308,5 +308,6 @@ class LMTPServer(SMTPServer):
         if not addr[0] in self._socket_acl:
             log.warning('Unknown connection from %s denied.' % addr[0])
             return
+        log.debug('Accepted new connection from %s' % addr[0])
         channel = LMTPChannel(self, conn, addr, self.backend)
 
