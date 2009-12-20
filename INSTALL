@@ -1,0 +1,34 @@
+Response Installation
+=====================
+
+Dependencies
+------------
+
+All in one primer for Debian-like systems:
+
+    $ sudo aptitude install python python-{mysqldb,sqlalchemy}
+
+
+* Python 2.6 or later (no Python 3 support planned yet)
+  http://www.python.org/
+
+  $ sudo aptitude install python
+
+* MySQLdb (Python interface to the MySQL server)
+  http://mysql-python.sourceforge.net/
+
+  $ sudo aptitude install python-mysqldb
+
+* SQLAlchemy (used only for connection pooling)
+  http://www.sqlalchemy.org/
+
+  $ sudo aptitude install python-sqlalchemy
+
+
+Installation
+------------
+
+TODO
+
+
+vim: tw=78
