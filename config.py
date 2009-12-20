@@ -30,7 +30,7 @@ class LMTPConfig(object):
     def __init__(self):
 
         # Where should we listen? Only TcpServerSockets supported.
-        self.socket = TcpServerSocket(host='localhost', port=10024)
+        self.socket = TcpServerSocket(host='127.0.0.1', port=10024)
 
         # Who may connect? Single IPv4 addresses only for now.
         #
