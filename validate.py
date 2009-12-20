@@ -494,7 +494,7 @@ def validate_headers(message):
     Return: True if yes, False if not'''
 
     invalid_header = (None, None)
-    result = True
+    valid = True
 
     log.debug('Validating headers')
 
@@ -503,27 +503,27 @@ def validate_headers(message):
         for regexp in INVALID_HEADER_NAME_RE:
             if regexp.match(header_name):
                 invalid_header = (header_name, message.get(header_name))
-                result = False
+                valid = False
                 break
-        if not result:
+        if not valid:
             break
 
     # Validate header *VALUES*
-    if result:
+    if valid:
         for header_name, header_value in message.items():
             for name_regexp, value_regexps in INVALID_HEADER_VALUE_RE:
                 if name_regexp.match(header_name):
                     for value_regexp in value_regexps:
                         if value_regexp.match(header_value):
                             invalid_header = (header_name, header_value)
-                            result = False
+                            valid = False
                             break
-                if not result:
+                if not valid:
                     break
-            if not result:
+            if not valid:
                 break
 
-    if result:
+    if valid:
         log.debug('Header validation successful!')
     else:
         log.debug('Header validation failed!')
@@ -540,7 +540,7 @@ def validate_recipient(manager, message):
     Return: True if yes, False if not'''
 
     recipient = message.get_unixto()
-    result = True
+    valid = True
 
     log.debug('Validating recipient: %s' % recipient)
 
@@ -549,17 +549,17 @@ def validate_recipient(manager, message):
     # due to virtual aliases.
     if not (recipient in message.get('To', failobj='')
         or  recipient in message.get('Cc', failobj='')):
-        result = False
+        valid = False
 
     # Validate against the list of invalid recipient regexps before
     # involving the backend in any way
-    if result:
+    if valid:
         for regexp in INVALID_RECIPIENT_RE:
             if regexp.match(recipient):
-                result = False
+                valid = False
                 break
 
-    if result:
+    if valid:
         try:
             manager.validate_recipient(recipient)
             log.debug('Recipient validation successful!')
@@ -581,22 +581,22 @@ def validate_sender(message):
     Return True if yes, False if not'''
 
     sender = message.get_unixfrom()
-    result = True
+    valid = True
 
     log.debug('Validating sender: %s' % sender)
 
     # Don't loop on our own...
     if sender == message.get_unixto():
-        result = False
+        valid = False
 
     # Validate against the huge list of invalid sender regexps
-    if result:
+    if valid:
         for regexp in INVALID_SENDER_RE:
             if regexp.match(sender):
-                result = False
+                valid = False
                 break
 
-    if result:
+    if valid:
         log.debug('Sender validation successful!')
     else:
         log.debug('Sender validation failed!')
