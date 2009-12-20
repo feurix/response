@@ -49,13 +49,20 @@ INVALID_SENDER_RE = [
         re.compile(
         '''
         (?:
-            abuse
+            (?:
+                (?:
+                    dns
+                |   ssl
+                )?
+                -?
+                admin
+            )
+        |   abuse
         |   bounce
         |   daemon
         |   server
         |   httpd?
-        |   www
-        |   www-data
+        |   www-?(?:data)?
         |   root
         |   nobody
         |   (?:
@@ -271,13 +278,20 @@ INVALID_RECIPIENT_RE = [
         re.compile(
         '''
         (?:
+            (?:
+                (?:
+                    dns
+                |   ssl
+                )?
+                -?
+                admin
+            )
             abuse
         |   bounce
         |   daemon
         |   server
         |   httpd?
-        |   www
-        |   www-data
+        |   www-?(?:data)?
         |   root
         |   nobody
         |   (?:
