@@ -511,12 +511,20 @@ def validate_recipient(manager, message):
 
     log.debug('Validating recipient: %s' % recipient)
 
+    # First of all, don't respond to messages that don't list us as one
+    # of the primary recipients. This can happen with address rewriting
+    # due to virtual aliases.
+    if not recipient in message.getheader('To', default='') \
+    or not recipient in message.getheader('Cc', default=''):
+        result = False
+
     # Validate against the list of invalid recipient regexps before
     # involving the backend in any way
-    for regexp in INVALID_RECIPIENT_RE:
-        if regexp.match(recipient):
-            result = False
-            break
+    if result:
+        for regexp in INVALID_RECIPIENT_RE:
+            if regexp.match(recipient):
+                result = False
+                break
 
     if result:
         try:
