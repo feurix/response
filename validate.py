@@ -559,11 +559,16 @@ def validate_sender(message):
 
     log.debug('Validating sender: %s' % sender)
 
+    # Don't loop on our own...
+    if sender == message.get_unixto():
+        result = False
+
     # Validate against the huge list of invalid sender regexps
-    for regexp in INVALID_SENDER_RE:
-        if regexp.match(sender):
-            result = False
-            break
+    if result:
+        for regexp in INVALID_SENDER_RE:
+            if regexp.match(sender):
+                result = False
+                break
 
     if result:
         log.debug('Sender validation successful!')
