@@ -64,10 +64,13 @@ class LMTPChannel(asynchat.async_chat):
         try:
             self.__backend_manager = Manager(backend)
             self.__backend_manager.connect()
-        except:
+        except exception.DatabaseError, e:
             # We handle this later (smtp_RCPT) where the protocol
             # allows us to send the necessary status code.
-            log.error('Backend failure while initializing channel')
+            log.error('Backend failure while initializing channel: %s' % e)
+        except Exception, e:
+            log.error('Unhandled backend failure while initializing ' \
+                      'channel: %s' % e)
 
         self.reset()
         self.push('220 %s %s' % (self.__fqdn, __version__))

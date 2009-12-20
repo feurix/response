@@ -23,6 +23,7 @@
 from globals import __author__, __copyright__, __license__, __version__
 
 import logging
+import logging.handlers
 
 # Defaults
 LOGNAME = 'response'
@@ -32,6 +33,8 @@ LOG_FORMAT_MSG_DEBUG = '%(asctime)s %(name)s[%(process)s] ' \
         + '(%(filename)s:%(lineno)d) [%(levelname)s]: %(message)s'
 LOG_FORMAT_TIME_DEBUG = '%T'
 LOG_FORMAT_MSG_SYSLOG = '%(name)s[%(process)s]: %(message)s'
+LOG_FORMAT_MSG_SYSLOG_DEBUG = '%(name)s[%(process)s] ' \
+        + '(%(filename)s:%(lineno)d) [%(levelname)s]: %(message)s'
 
 
 # Default handler used by submodules (so they may be used in other apps)
@@ -44,31 +47,26 @@ def getLog(name=LOGNAME, debug=False, verbose=False, quiet=False,
 
     log = logging.getLogger(name)
 
-    if debug:
-        log_format = logging.Formatter(
-                LOG_FORMAT_MSG_DEBUG,
-                LOG_FORMAT_TIME_DEBUG
-                )
-        log_handler = logging.StreamHandler()
-        log_handler.setFormatter(log_format)
-        log.addHandler(log_handler)
-        log.setLevel(logging.DEBUG)
-        return log
-
     if syslog:
-        log_format = logging.Formatter(LOG_FORMAT_MSG_SYSLOG)
-        log_handler = SysLogHandler('/dev/log', syslog_facility.lower())
+        log_format = logging.Formatter(
+                LOG_FORMAT_MSG_SYSLOG_DEBUG if debug else \
+                        LOG_FORMAT_MSG_SYSLOG
+                )
+        log_handler = logging.handlers.SysLogHandler('/dev/log',
+                syslog_facility.lower())
     else:
         log_format = logging.Formatter(
-                LOG_FORMAT_MSG,
-                LOG_FORMAT_TIME
+                LOG_FORMAT_MSG_DEBUG if debug else LOG_FORMAT_MSG,
+                LOG_FORMAT_TIME_DEBUG if debug else LOG_FORMAT_TIME,
                 )
         log_handler = logging.StreamHandler()
 
     log_handler.setFormatter(log_format)
     log.addHandler(log_handler)
 
-    if verbose:
+    if debug:
+        log.setLevel(logging.DEBUG)
+    elif verbose:
         log.setLevel(logging.INFO)
     elif quiet:
         log.setLevel(logging.ERROR)
