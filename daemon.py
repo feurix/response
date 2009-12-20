@@ -34,7 +34,6 @@
 
 from globals import __author__, __copyright__, __license__, __version__
 
-import logging
 import os
 import sys
 import exception
