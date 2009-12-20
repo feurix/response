@@ -451,6 +451,17 @@ INVALID_HEADER_VALUE_RE = [
         ),
 
         #
+        # Calendar, iCal, Meeting, etc.
+        #
+        (   # Header-Name RE
+            re.compile('Content-Class', re.IGNORECASE),
+
+            [   # Header-Value REs
+                re.compile('.*calendar.*', re.IGNORECASE),
+            ]
+        ),
+
+        #
         # Subjects
         #
         (   # Header-Name RE
