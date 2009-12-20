@@ -51,7 +51,7 @@ CREATE TABLE `autoresponse_record` (
     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
     `sender_id` integer NOT NULL,
     `recipient` varchar(255) NOT NULL,
-    `last` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `hit` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
     `sent` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
     UNIQUE (`sender_id`, `recipient`)
 )

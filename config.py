@@ -176,13 +176,13 @@ class BackendConfig(object):
         #
         self.query_record_response = \
                 "INSERT INTO `%(database)s`.`autoresponse_record` " \
-                "(`sender_id`, `recipient`, `last`) " \
+                "(`sender_id`, `recipient`, `hit`) " \
                     "SELECT " \
                     "`id` AS `sender_id`, '%%(recipient)s' AS `recipient`, " \
-                    "'%%(date)s' AS `last` " \
+                    "'%%(date)s' AS `hit` " \
                     "FROM `%(database)s`.`autoresponse_config` " \
                     "WHERE `address` = '%%(sender)s' " \
-                "ON DUPLICATE KEY UPDATE `last` = '%%(date)s'" \
+                "ON DUPLICATE KEY UPDATE `hit` = '%%(date)s'" \
                 % {'database': self.database}
 
 
