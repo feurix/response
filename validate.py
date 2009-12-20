@@ -103,12 +103,16 @@ INVALID_SENDER_RE = [
         # Obvious cases...
         re.compile(
         '''
-        no
+        (:?do)?
+        .*
+        not?
+        .*
         (?:
             reply
         |   return
         |   answere?s?
         )
+        .*
         @
         ''', re.VERBOSE | re.IGNORECASE),
 
@@ -321,15 +325,18 @@ INVALID_RECIPIENT_RE = [
         # Obvious cases...
         re.compile(
         '''
-        no
+        (:?do)?
+        .*
+        not?
+        .*
         (?:
             reply
         |   return
         |   answere?s?
         )
+        .*
         @
         ''', re.VERBOSE | re.IGNORECASE),
-
 
 ] # end of recipient regexps
 
