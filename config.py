@@ -39,7 +39,6 @@ class LMTPConfig(object):
         # would have yet another dependency...
         self.socket_acl = ['127.0.0.1',]
 
-
         # Error Handling / Informing the client of problems
         #
         # Note: If all of the following options hardfail, softfail and failsafe
@@ -71,6 +70,42 @@ class LMTPConfig(object):
         # would have been successful - result in a missing autoresponse).
         # Use softfail if you want the MTA to try again later instead.
         self.failsafe = False
+
+
+    # Define a function that will return the real recipient address,
+    # depending heavily on your MTA setup and how it delivers to us.
+    #
+    # Assume the original recipient is john@mydomain.tld:
+    #
+    # In case of Postfix, we use a mysql virtual alias table to alias the
+    # original recipient to (using a special SELECT):
+    #
+    #   john@mydomain.tld, john#mydomain.tld@response.internal
+    #
+    # The original @ was replaced by # and the new target domain is
+    # response.internal.  Describing the above line: The mail is finally
+    # delivered to the original recipient with whatever transport is configured
+    # for the original target domain. In addition, the mail is delivered to the
+    # internal only response.internal domain, which has a transport map entry:
+    #
+    #   repsonse.internal  response:[127.0.0.1]:10024
+    #
+    # Ok, so now all internally rewritten mail targeted at *@response.internal
+    # uses the response transport :-) (Note: The response transport has to be
+    # defined in master.cf, see the configuration examples for this)
+    #
+    # Finally, we end up with a problem. The recipient address that
+    # response-lmtp receives is john#mydomain.tld@response.internal.
+    #
+    # This function has to reverse the rewriting, ie. we must return the
+    # original john@mydomain.tld!
+    #
+    # Since this depends heavily on the used MTA and it's configuration
+    # this function is part of the response-lmtp configuration:
+    def parse_recipient(self, address):
+        address = address.split('@', 1)[0]
+        address = address.replace('#', '@')
+        return address
 
 
 class BackendConfig(object):

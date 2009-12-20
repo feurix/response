@@ -214,7 +214,11 @@ class LMTPChannel(asynchat.async_chat):
         if not self.__mailfrom:
             self.push('503 5.5.1 Error: need MAIL command')
             return
+
+        # Normalize recipient address
         address = self.__getaddr('TO:', arg)
+        address = self.__server.config.parse_recipient(address)
+
         if not address:
             self.push('501 5.5.2 Syntax: RCPT TO: <address>')
             return
