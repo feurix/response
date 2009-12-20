@@ -484,18 +484,19 @@ def validate_headers(message):
             break
 
     # Validate header *VALUES*
-    for header_name, header_value in message.items():
-        for name_regexp, value_regexps in INVALID_HEADER_VALUE_RE:
-            if name_regexp.match(header_name):
-                for value_regexp in value_regexps:
-                    if value_regexp.match(header_value):
-                        invalid_header = (header_name, header_value)
-                        result = False
-                        break
+    if result:
+        for header_name, header_value in message.items():
+            for name_regexp, value_regexps in INVALID_HEADER_VALUE_RE:
+                if name_regexp.match(header_name):
+                    for value_regexp in value_regexps:
+                        if value_regexp.match(header_value):
+                            invalid_header = (header_name, header_value)
+                            result = False
+                            break
+                if not result:
+                    break
             if not result:
                 break
-        if not result:
-            break
 
     if result:
         log.debug('Header validation successful!')
