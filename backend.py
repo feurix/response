@@ -108,7 +108,7 @@ class MySQL(DatabaseBackend):
         _log('%s: %s' % (self.LABEL, message))
 
     def connect(self):
-        self._log(log.debug, 'Asking pool for a connection')
+        self._log(log.info, 'Asking pool for a connection')
         try:
             connection = self.DatabasePool.connect(**self.connection_params)
         except self.MySQLdb.OperationalError, e:
@@ -128,15 +128,15 @@ class MySQL(DatabaseBackend):
         cursor.close()
 
     def commit(self, connection):
-        self._log(log.debug, 'Committing changes')
+        self._log(log.info, 'Committing changes')
         connection.commit()
 
     def disconnect(self, connection):
-        self._log(log.debug, 'Releasing connection')
+        self._log(log.info, 'Releasing connection')
         connection.close()
 
     def close(self):
-        self._log(log.warning, 'Disposing connection pool...')
+        self._log(log.info, 'Disposing connection pool...')
         self.DatabasePool.dispose()
 
     def query(self, cursor, sql, sql_params={}):
