@@ -187,11 +187,62 @@ class BackendConfig(object):
                 "ON DUPLICATE KEY UPDATE `hit` = '%%(date)s'" \
                 % {'database': self.database}
 
+        # Query to disable autoresponders if they have expired.
+        #
+        # Parameters:
+        #
+        #   date = The current date.
+        #
+        self.query_disable_expired_configs = \
+                "UPDATE `%(database)s`.`autoresponse_config` `config` " \
+                   "SET `enabled` = 0 " \
+                 "WHERE `config`.`enabled` = 1 " \
+                   "AND `config`.`expires` < '%%(date)s'" \
+                % {'database': self.database}
+
+        # Query to delete old response records with no activity after the
+        # given date.
+        #
+        # Parameters:
+        #
+        #   date = The earliest hit-date back in history when we consider a
+        #          record to be deleted.
+        #
+        self.query_delete_old_response_records = \
+                "DELETE `%(database)s`.`record` " \
+                  "FROM `%(database)s`.`autoresponse_record` `record` " \
+                 "WHERE `record`.`hit` < '%%(date)s'" \
+                % {'database': self.database}
+
+        # Query to delete records of disabled response configs.
+        #
+        # Parameters:
+        #
+        #   None
+        #
+        self.query_delete_records_of_disabled_configs = \
+                "DELETE `%(database)s`.`record` " \
+                  "FROM `%(database)s`.`autoresponse_record` `record` " \
+             "LEFT JOIN `%(database)s`.`autoresponse_config` `config` " \
+                    "ON `record`.`sender_id` = `config`.`id` " \
+                 "WHERE `config`.`enabled` = 0" \
+                % {'database': self.database}
+
+
+class CleanupConfig(object):
+    def __init__(self):
+
+        # Delete response records after the last hit is at least this old,
+        # in seconds. Used with -O, --delete-old-response-records.
+        # Note: This should be at least NofifyConfig.timedelta_required
+        self.delete_records_with_last_hit_before = 60 * 60 * 24 * 7  # 1 week
+
 
 class Config(object):
     def __init__(self, file):
         # TODO: Parse file...
         self.backend = BackendConfig()
         self.lmtp = LMTPConfig()
+        self.cleanup = CleanupConfig()
 
 

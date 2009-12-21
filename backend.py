@@ -191,6 +191,33 @@ class MySQL(DatabaseBackend):
                     % (sender, recipient, e))
             raise
 
+    def disable_expired_configs(self, cursor, date):
+        try:
+            return self.query(cursor,
+                    self.config.query_disable_expired_configs,
+                    {'date': date})
+        except Exception, e:
+            self._log(log.info, 'Unable to disable expired configs: %s' % e)
+            raise
+
+    def delete_old_response_records(self, cursor, date):
+        try:
+            return self.query(cursor,
+                    self.config.query_delete_old_response_records,
+                    {'date': date})
+        except Exception, e:
+            self._log(log.info, 'Unable to delete old records: %s' % e)
+            raise
+
+    def delete_records_of_disabled_configs(self, cursor):
+        try:
+            return self.query(cursor,
+                    self.config.query_delete_records_of_disabled_configs)
+        except Exception, e:
+            self._log(log.info,
+                    'Unable to delete records of disabled configs: %s' % e)
+            raise
+
 
 class Manager(object):
     '''Backend Manager
