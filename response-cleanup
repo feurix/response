@@ -85,7 +85,7 @@ if options.all_at_once:
 if not (options.disable_expired_configs
         or options.delete_old_response_records
         or options.delete_records_of_disabled_configs):
-    print('Need at least one cleanup operation!')
+    print('Error: Need at least one cleanup operation!\n')
     parser.print_help()
     sys.exit(1)
 
@@ -141,7 +141,7 @@ if options.dryrun:
     log.warning('DRY-RUN requested: Not performing any SQL queries!')
 
 try:
-    log.warning('Initialising...')
+    log.warning('Initializing...')
     try:
         log.warning('Connecting to backend...')
         connection = backend.connect()
