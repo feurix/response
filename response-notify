@@ -137,8 +137,7 @@ if options.dryrun:
 
 try:
     log.warning('Initializing...')
-    log.warning('Note: this invocation has an upper limit of %s generated ' \
-                'response mails. Use -L to override.' % options.limit)
+    log.warning('Upper limit of generated response mails: %d' % options.limit)
 
     try:
         log.warning('Connecting to backend...')
