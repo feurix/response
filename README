@@ -96,7 +96,7 @@ The components are described in more detail in the following sections.
 Response LMTP Daemon
 --------------------
 
-The main autoresponse validation and recording component (response-lmtp) is
+The main autoresponse validation and recording component (response-lmtpd) is
 implemented as a LMTP daemon doing message validation, queueing new pending
 response records and recording the arrival of the last valid message to a
 configured autoresponse address. SMTP is not applicable here because we don't
@@ -104,7 +104,7 @@ want to implement a (possibly bad performing) queue. The mail queues and queue
 schedulers of modern MTAs are very good, so let's make use of them.
 
 Logging can go to stderr or directly to syslog. You can freely configure the
-syslog facility. If you run response-lmtp daemonized, logging always goes to
+syslog facility. If you run response-lmtpd daemonized, logging always goes to
 syslog.
 
 The LMTP daemon should be used as a final secondary transport by your MTA.
