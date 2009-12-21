@@ -1,4 +1,4 @@
-- response-notify component
 - rouncube plugin
-- examle mta configurations
 - configuration file support
+- postgresql backend adapter and queries (should be trivial)
+- exim configuration example?
