@@ -187,6 +187,45 @@ class BackendConfig(object):
                 "ON DUPLICATE KEY UPDATE `hit` = '%%(date)s'" \
                 % {'database': self.database}
 
+        # Query to get pending responses.
+        #
+        # Parameters:
+        #
+        #   date = The latest sent-date back in history we require to send
+        #          another response. See NotifyConfig.required_timedelta.
+        #  limit = Upper limit of rows returned.
+        #
+        self.query_pending_responses = \
+                "SELECT `record`.`id` AS `id`, " \
+                       "`config`.`address` AS `sender`, " \
+                       "`record`.`recipient` AS `recipient`, " \
+                       "`config`.`subject` AS `subject`, " \
+                       "`config`.`message` AS `message`, " \
+                       "`record`.`sent` AS `sent` " \
+                  "FROM `%(database)s`.`autoresponse_config` `config`, " \
+                       "`%(database)s`.`autoresponse_record` `record` " \
+                 "WHERE `config`.`id` = `record`.`sender_id` " \
+                   "AND `config`.`enabled` = 1 " \
+                   "AND ( " \
+                            "`record`.`sent` = 0 " \
+                         "OR `record`.`sent` < '%%(date)s' " \
+                        ") " \
+                  "LIMIT %%(limit)d" \
+                % {'database': self.database}
+
+        # Query to update the sent timestamp of successfully sent responses.
+        #
+        # Parameters:
+        #
+        #     id = The id of the record.
+        #   date = The current date.
+        #
+        self.query_update_sent_timestamp = \
+                "UPDATE `%(database)s`.`autoresponse_record` `record` " \
+                   "SET `sent` = '%%(date)s' " \
+                 "WHERE `record`.`id` = %%(id)d" \
+                % {'database': self.database}
+
         # Query to disable autoresponders if they have expired.
         #
         # Parameters:
@@ -229,6 +268,66 @@ class BackendConfig(object):
                 % {'database': self.database}
 
 
+class NotifyConfig(object):
+    def __init__(self):
+
+        # How many seconds must pass before we send a successive response
+        # from the same sender to the same recipient?
+        self.required_timedelta = 60 * 60 * 24 * 7  # 1 week
+
+        #
+        # Using a local sendmail binary
+        #
+
+        # TODO: Not implemented yet. Is it worth the effort?
+        # Let's use some (E)SMTP relay!
+        # Use local sendmail command, if yes, which?
+        # self.sendmail_command = ['/usr/bin/sendmail', 'arg1', 'arg2', ...]
+
+
+        #
+        # Using a SMTP relay
+        #
+        self.smtp_host = 'localhost'
+        self.smtp_port = 25
+        self.smtp_timeout = 20
+
+        self.smtp_auth = False
+        self.smtp_username = None
+        self.smtp_password = None
+
+        self.starttls = False
+
+        # http://en.wikipedia.org/wiki/Envelope_sender
+        # This is the sender address given in the command channel of the SMTP
+        # protocol using "MAIL FROM". The null sender is *strongly* suggested
+        # to avoid loops and other bad stuff!
+        self.smtp_envelope_from = '<>'
+
+
+        #
+        # Configuration of autoresponse message creation
+        #
+
+        # Message charset
+        self.message_charset = 'utf-8'
+
+        # Insert special headers to prevent other systems responding to our
+        # autoresponses? This is *strongly* suggested!
+        self.message_insert_special_headers = True
+
+        # Set a realname to use in the "From" header.
+        self.message_header_from_name = 'Autoresponder'
+
+        # Override the address in the "From" header of the response?  (The
+        # default is to use the e-mail address of the original local recipient)
+        self.message_header_from_address = None
+
+        # Prepend something to all subjects of all response messages?
+        self.message_header_subject_prefix = None
+
+
+
 class CleanupConfig(object):
     def __init__(self):
 
@@ -244,5 +343,6 @@ class Config(object):
         self.backend = BackendConfig()
         self.lmtp = LMTPConfig()
         self.cleanup = CleanupConfig()
+        self.notify = NotifyConfig()
 
 

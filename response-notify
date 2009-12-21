@@ -1,0 +1,348 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''Response Project - Notify'''
+
+# Copyright (C) 2009 John Feuerstein <john@feurix.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+from globals import __author__, __copyright__, __license__, __version__
+
+import os
+import signal
+import sys
+import logger
+import exception
+
+from smtplib import SMTP
+from email.header import Header
+from email.message import Message
+from email.mime.text import MIMEText
+
+from datetime import datetime, timedelta
+from config import Config
+from pidfile import PidFile
+from optparse import OptionParser
+
+# Option parsing
+version = '%prog version ' + __version__
+usage = 'Usage: %prog [options]'
+
+parser = OptionParser(usage=usage, version=version)
+
+parser.add_option('-D', '--dump-response-mails', action='store_true',
+        dest='dump_response_mails',
+        help='dump all created response mails on stdout',)
+parser.add_option('-L', '--limit-response-mails', type='int', action='store',
+        dest='limit',
+        help='never create more than this amount of response mails, ' \
+             'default: 10',
+        default=10)
+
+parser.add_option('-n', '--dry-run', action='store_true', dest='dryrun',
+        help='do not execute any query, show what would have been done',)
+parser.add_option('-d', '--debug', action='store_true', dest='debug',
+        help='debug mode')
+parser.add_option('-v', '--verbose', action='store_true', dest='verbose',
+        help='verbose mode')
+parser.add_option('-q', '--quiet', action='store_true', dest='quiet',
+        help='only log errors')
+parser.add_option('-s', '--syslog', action='store_true', dest='syslog',
+        help='log to syslog')
+parser.add_option('--syslog-facility', type='string', action='store',
+        dest='syslog_facility', default='MAIL',
+        help='specify the syslog facility (default: MAIL)')
+parser.add_option('-c', '--config', action='store', dest='config_file',
+        help='specify an alternate path to the config file,     ' \
+             'default: /etc/response.conf',
+        default='/etc/response.conf')
+parser.add_option('-p', '--pid-file', action='store', dest='pid_file',
+        help='specify an alternate path to the pid file,     ' \
+             'default: /var/run/response-notify.pid',
+        default='/var/run/response-notify.pid')
+
+(options, args) = parser.parse_args()
+
+# Hardcode an upper limit for now. The usual copy&paste user is error-prone.
+# Admins of mailservers with more volume should know what they're doing and
+# adjust this to their needs... (the default of 10 is nearly useless but
+# keeps people from creating many responses while still testing the setup).
+if options.limit > 200:
+    options.limit = 200
+
+# Logging
+log = logger.getLog(
+        debug=options.debug,
+        verbose=options.verbose,
+        quiet=options.quiet,
+        syslog=options.syslog,
+        syslog_facility=options.syslog_facility,
+        )
+
+# Signal handling
+def signal_handler(signum, frame):
+    if signum == signal.SIGINT:
+        log.warning('Received SIGINT, exiting...')
+        raise exception.SignalReceived(signum, 'SIGINT')
+    elif signum == signal.SIGTERM:
+        log.warning('Received SIGTERM, exiting...')
+        raise exception.SignalReceived(signum, 'SIGTERM')
+    else:
+        log.warning('Received signal number %d, exiting...' % signum)
+        raise exception.SignalReceived(signum)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+
+# Main
+log.warning('%s starting up... (loglevel: %s)'
+        % (parser.get_version(), logger.getLogLevelName(log)))
+
+try:
+    pid = PidFile(file=options.pid_file)
+    pid.write()
+except exception.PidFileError, e:
+    if e.stalefile:
+        log.fatal('Stale pidfile %s present.' % options.pid_file)
+        log.fatal('Response-Notify already running?')
+    else:
+        log.fatal('Unable to write to pidfile %s' % options.pid_file)
+
+    log.fatal('Exiting with errors...')
+    sys.exit(1)
+
+log.warning('Running with PID=%d' % pid.pid)
+
+config = Config(options.config_file)
+backend = config.backend.adapter
+ret = 0
+
+if options.dryrun:
+    log.warning('DRY-RUN requested: Not performing any writing SQL queries!')
+    log.warning('DRY-RUN requested: Not sending any mails!')
+
+try:
+    log.warning('Initializing...')
+    log.warning('Note: this invocation has an upper limit of %s generated ' \
+                'response mails. Use -L to override.' % options.limit)
+
+    try:
+        log.warning('Connecting to backend...')
+
+        # We require unicode for the queries issued in here!
+        # Check your backend database character set, connection charset, etc.
+        connection = backend.connect(
+                unicode=True,
+                cursorclass=backend.CURSOR_DICT
+                )
+        cursor = backend.open_cursor(connection)
+    except Exception, e:
+        log.error('Error initializing backend: %s' % e)
+        ret = 2
+        raise
+
+    try:
+        relay = SMTP(timeout=config.notify.smtp_timeout)
+
+        date = datetime.now() - timedelta(
+                seconds=config.notify.required_timedelta)
+        log.info('Not creating any successive autoresponse for already sent ' \
+                 'responses after: %s' % date)
+
+        rows = backend.get_pending_responses(cursor, date, options.limit)
+        if rows < 1:
+            log.warning('No pending responses found.')
+            raise exception.ProcessError('Nothing to do')
+        elif rows > options.limit:
+            log.error('Backend returned more results than allowed: %s' % rows)
+            raise exception.BackendError('Invalid number of results returned')
+
+        if not options.dryrun:
+            try:
+                log.warning('Connecting to SMTP relay %s:%s'
+                        % (config.notify.smtp_host, config.notify.smtp_port))
+
+                relay.connect(
+                        host=config.notify.smtp_host,
+                        port=config.notify.smtp_port,
+                )
+
+                if config.notify.starttls:
+                    relay.starttls()
+                    relay.ehlo()
+
+                if config.notify.smtp_auth:
+                    relay.login(
+                            user=config.notify.smtp_username,
+                            password=config.notify.smtp_password,
+                    )
+
+            except Exception, e:
+                log.error('Error connecting SMTP relay: %s' % e)
+                ret = 2
+                raise exception.RelayError(e)
+
+        #
+        # Message processing
+        #
+        i = 0
+        CHARSET = config.notify.message_charset
+        while True:
+            i += 1
+            response = backend.fetchrow(cursor)
+            if response is None:
+                break
+
+            # Note:
+            # All value strings in the returned dict from the backend *must* be
+            # unicode literals, regardless of the configured message charset.
+            id = response['id']
+            subject = response['subject']
+            message = response['message']
+            sent = response['sent']
+
+            sender_name = None
+            sender_address = response['sender']
+            recipient = response['recipient']
+
+            log.warning('[%d] %s -> %s (record id: %d)'
+                    % (i, sender_address, recipient, id))
+
+            if config.notify.message_header_from_name:
+                sender_name = config.notify.message_header_from_name
+
+            if config.notify.message_header_from_address:
+                sender_address = config.notify.message_header_from_address
+
+            if sender_name:
+                sender = '"%s" <%s>' % (sender_name, sender_address)
+            else:
+                sender = sender_address
+
+            if config.notify.message_header_subject_prefix:
+                subject = config.notify.message_header_subject_prefix \
+                        + subject
+
+            sender = sender.encode(CHARSET)
+            recipient = recipient.encode(CHARSET)
+            subject = subject.encode(CHARSET)
+            message = message.encode(CHARSET)
+
+            try:
+                log.info('[%d] Assembling message...' % i)
+
+                # We only support text/plain for now.
+                message = MIMEText(message, 'plain', CHARSET)
+
+                # The envelope sender. The MTA should create a Return-Path
+                # header using this address.
+                message.set_unixfrom(config.notify.smtp_envelope_from)
+
+                # Mandatory headers possibly containing special characters
+                message['From'] = Header(sender, CHARSET)
+                message['To'] = Header(recipient, CHARSET)
+                message['Subject'] = Header(subject, CHARSET)
+
+                # Loop prevention using special headers in addition to a sane
+                # Return-Path.
+                if config.notify.message_insert_special_headers:
+                    message['Auto-Submitted'] = 'auto-replied'
+                    message['Precedence'] = 'junk'
+
+                log.info('[%d] Assembling message: Success!' % i)
+
+                if options.dump_response_mails:
+                    print('=' * 78)
+                    print('Message Number: %d' % i)
+                    print('Backend Record: %d' % id)
+                    if sent:
+                        print('Last Sent Date: %s' % sent)
+                    print('Envelope FROM: %s' % message.get_unixfrom())
+                    print('Envelope RCPT: %s' % recipient)
+                    print('-' * 78)
+                    print(message.as_string())
+                    print('=' * 78)
+                    print('')
+
+            except Exception, e:
+                log.error('[%d] Error while trying to assemble response: %s'
+                        % (i, e))
+                continue
+
+            if not options.dryrun:
+                try:
+                    log.info('[%d] Sending response...' % i)
+                    relay.sendmail(
+                            from_addr=message.get_unixfrom(),
+                            to_addrs=[recipient],
+                            msg=message.as_string(),
+                            )
+                    log.info('[%d] Sending response: Success!' % i)
+                    log.info('[%d] Updating sent timestamp...' % i)
+                    backend.update_sent_timestamp(
+                            cursor,
+                            id,
+                            datetime.now(),
+                            )
+                    backend.commit(connection)
+                    log.info('[%d] Updating sent timestamp: Success!' % i)
+                except Exception, e:
+                    backend.rollback(connection)
+                    log.error('[%d] Error while trying to send mail: %s'
+                            % (i, e))
+
+
+    except exception.SignalReceived, s:
+        log.info('Notifier received signal %d (%s)' %
+                (s.signum, s.signame))
+        ret = 3
+        # This may be useful someday...
+
+    except exception.ProcessError, e:
+        ret = 0
+
+    except exception.RelayError, e:
+        log.error('SMTP relay error: %s' % e)
+
+    except Exception, e:
+        ret = 1
+        log.error('Unhandled exception: %s' % e)
+
+    finally:
+        log.warning('Doing a graceful shutdown...')
+
+        if not options.dryrun:
+            log.info('Closing SMTP connection')
+            try:
+                relay.quit()
+            except:
+                pass
+
+        backend.close_cursor(cursor)
+        backend.disconnect(connection)
+        backend.close()
+
+except Exception, e:
+    ret = 1
+    log.error('Catched unhandled exception: %s' % e)
+finally:
+    log.debug('Cleaning up...')
+    pid.delete()
+
+log.warning('Quit.')
+sys.exit(ret)
+

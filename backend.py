@@ -34,8 +34,14 @@ class DatabaseBackend(object):
     '''Base class of database backend adapters with all public functions
     used by the backend manager.
     '''
+    # Format of the result set doesn't matter
+    CURSOR_DEFAULT = None
 
-    def connect(self):
+    # If connect() is called with this cursor class the result set must
+    # return rows as dictionaries, with the column names as keys!
+    CURSOR_DICT = None
+
+    def connect(self, unicode, cursorclass):
         raise exception.NotImplemented
 
     def open_cursor(self, connection):
@@ -47,10 +53,16 @@ class DatabaseBackend(object):
     def commit(self, connection):
         raise exception.NotImplemented
 
+    def rollback(self, connection):
+        raise exception.NotImplemented
+
     def disconnect(self, connection):
         raise exception.NotImplemented
 
     def close(self):
+        raise exception.NotImplemented
+
+    def fetchrow(self, cursor):
         raise exception.NotImplemented
 
     def query(self, cursor, sql, sql_params):
@@ -60,6 +72,21 @@ class DatabaseBackend(object):
         raise exception.NotImplemented
 
     def record_response(self, cursor, sender, recipient):
+        raise exception.NotImplemented
+
+    def get_pending_responses(self, cursor, date, limit):
+        raise exception.NotImplemented
+
+    def update_sent_timestamp(self, cursor, id, date):
+        raise exception.NotImplemented
+
+    def disable_expired_configs(self, cursor, date):
+        raise exception.NotImplemented
+
+    def delete_old_response_records(self, cursor, date):
+        raise exception.NotImplemented
+
+    def delete_records_of_disabled_configs(self, cursor):
         raise exception.NotImplemented
 
     def __del__(self):
@@ -77,10 +104,14 @@ class MySQL(DatabaseBackend):
     '''MySQL Backend Adapter'''
 
     import MySQLdb
+    import MySQLdb.cursors
     import _mysql_exceptions
     import sqlalchemy.pool as pool
 
     LABEL = 'MySQL'
+
+    CURSOR_DEFAULT = MySQLdb.cursors.Cursor
+    CURSOR_DICT = MySQLdb.cursors.DictCursor
 
     # Connection pooling
     DatabasePool = pool.manage(MySQLdb, recycle=120)
@@ -107,7 +138,11 @@ class MySQL(DatabaseBackend):
     def _log(self, _log, message):
         _log('%s: %s' % (self.LABEL, message))
 
-    def connect(self):
+    def connect(self, unicode=True, cursorclass=CURSOR_DEFAULT):
+        self.connection_params.update({
+                    'use_unicode': unicode,
+                    'cursorclass': cursorclass,
+        })
         self._log(log.info, 'Asking pool for a connection')
         try:
             connection = self.DatabasePool.connect(**self.connection_params)
@@ -130,6 +165,10 @@ class MySQL(DatabaseBackend):
     def commit(self, connection):
         self._log(log.info, 'Committing changes')
         connection.commit()
+
+    def rollback(self, connection):
+        self._log(log.info, 'Rolling back changes')
+        connection.rollback()
 
     def disconnect(self, connection):
         self._log(log.info, 'Releasing connection')
@@ -157,6 +196,9 @@ class MySQL(DatabaseBackend):
         except self._mysql_exceptions.IntegrityError, e:
             raise exception.DatabaseQueryError(
                     '%s: Integrity error: %s' % (self.LABEL, e), sql)
+
+    def fetchrow(self, cursor):
+        return cursor.fetchone()
 
     def validate_recipient(self, cursor, address):
         if not self.config.query_validate_recipient_enabled:
@@ -189,6 +231,31 @@ class MySQL(DatabaseBackend):
         except Exception, e:
             self._log(log.info, 'Unable to record autoresponse: %s -> %s - %s'
                     % (sender, recipient, e))
+            raise
+
+    def get_pending_responses(self, cursor, date, limit):
+        try:
+            return self.query(cursor, self.config.query_pending_responses,
+                    {
+                        'date': date,
+                        'limit': limit,
+                    })
+        except Exception, e:
+            self._log(log.info,
+                    'Unable to query for pending responses: %s' % e)
+            raise
+
+    def update_sent_timestamp(self, cursor, id, date):
+        try:
+            return self.query(cursor, self.config.query_update_sent_timestamp,
+                    {
+                        'id': id,
+                        'date': date,
+                     })
+        except Exception, e:
+            self._log(log.info,
+                    'Unable to update sent timestamp (record id %s): %s'
+                    % (id, e))
             raise
 
     def disable_expired_configs(self, cursor, date):
@@ -235,9 +302,9 @@ class Manager(object):
     def __nonzero__(self):
         return bool(self.connection)
 
-    def connect(self):
+    def connect(self, *args, **kwargs):
         if not self.connection:
-            self.connection = self.backend.connect()
+            self.connection = self.backend.connect(*args, **kwargs)
 
     def close(self):
         if self.connection:

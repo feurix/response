@@ -68,6 +68,9 @@ class ConfigError(Error):
 class BackendError(Error):
     pass
 
+class RelayError(Error):
+    pass
+
 class DatabaseError(Error):
     pass
 
