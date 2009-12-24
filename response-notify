@@ -265,6 +265,7 @@ try:
                 log.info('[%d] Assembling message: Success!' % i)
 
                 if options.dump_response_mails:
+                    print('')
                     print('=' * 78)
                     print('Message Number: %d' % i)
                     print('Backend Record: %d' % id)
