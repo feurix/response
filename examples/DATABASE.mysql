@@ -66,3 +66,28 @@ FOREIGN KEY (`sender_id`)
 REFERENCES `autoresponse_config` (`id`)
 ON DELETE CASCADE;
 
+
+
+/*
+ * Create a user for response-lmtpd, response-notify and response-cleanup.
+ * You may create different users, but let's keep it simple in the example.
+ *
+ */
+
+GRANT USAGE ON *.* TO 'response'@'localhost' IDENTIFIED BY 'FIXME';
+GRANT ALL PRIVILEGES ON `response`.* TO 'response'@'localhost';
+
+
+/*
+ * Finally, give the roundcube webmail user the needed privileges. This is just
+ * an example and depends heavily on your setup. Let's use the example user we
+ * use in the shipped roundcube vacation plugin configuration: "responserc"
+ *
+ */
+
+GRANT USAGE ON *.* TO 'responserc'@'localhost' IDENTIFIED BY 'FIXME';
+
+GRANT SELECT,INSERT,UPDATE
+    (`address`, `enabled`, `changed`, `subject`, `message`, `expires`)
+ON `response`.`autoresponse_config` TO 'responserc'@'localhost';
+
