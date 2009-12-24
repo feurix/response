@@ -1,0 +1,101 @@
+{% extends "defindex.html" %}
+{% block body %}
+<h1>{{ docstitle|e }}</h1>
+<a href="http://www.gnu.org/licenses/gpl-3.0.html">
+  <img src="{{ pathto('_static/gplv3.png', 1) }}" alt="GPLv3 License" style="float: right" />
+</a>
+<p>
+Welcome! This is
+{% block description %}the documentation for {{ project|e }}
+version {{ release|e }}{% if last_updated %}, last updated {{ last_updated|e }}{% endif %}{% endblock %}.
+</p>
+
+<p class="primer"><strong>What is Response?</strong></p>
+<p class="description">
+<strong>
+  Response is a set of tools to handle automatic e-mail responses,
+  also called "Out of Office", "Vacation" or "Autoreply" messages.
+</strong>
+</p>
+
+<p class="description">
+Response tries hard to do that <i>the correct way</i>, i.e. not responding to e-mails that
+should not be responded to. All of the validation code can be easily modified
+to suite your needs, however we try hard to ship sane defaults.
+</p>
+
+<hr />
+
+<p><strong>Key Features:</strong></p>
+<ul class="features">
+  <li>Fast <a href="http://en.wikipedia.org/wiki/LMTP">LMTP</a> daemon doing message validation and response recording</li>
+  <li>Designed primarily for <a href="http://www.postfix.org/">Postfix</a> and <a href="http://www.postfix.org/VIRTUAL_README.html">Virtual Users</a>, but works with others (see examples)</li>
+  <li>Supports various RDBMS backends: <a href="http://www.mysql.com/">MySQL</a>, <a href="http://www.postgresql.org/">PostgreSQL</a>, ...</li>
+  <li>You are free to use custom SQL queries for all operations</li>
+  <li>Powerful and customizable message validation</li>
+  <li>Scalable, multiple mailservers are supported</li>
+  <li>Sending responses using any SMTP relay (including SMTP-AUTH, STARTTLS)</li>
+  <li>... and finally, written completely in Python</li>
+</ul>
+
+<hr />
+
+{% block tables %}
+<p><strong>Documentation:</strong></p>
+<table class="contentstable" align="center">
+  <tr>
+    <td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("changelog") }}">What's new in Response v{{ version }}?</a><br/>
+      <span class="linkdescr">or see <a href="https://labs.feurix.org/mail/response/log/">the complete changelog</a></span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("readme") }}">Documentation</a><br/>
+      <span class="linkdescr">the primary documentation</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Complete Table of Contents</a><br/>
+      <span class="linkdescr">lists all sections and subsections</span></p>
+      </td><td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("features") }}">Complete List of Features</a><br/>
+      <span class="linkdescr">also including the yet missing ones</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("faq") }}">FAQs</a><br/>
+      <span class="linkdescr">frequently asked questions</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
+      <span class="linkdescr">search this documentation</span></p>
+    </td>
+  </tr>
+</table>
+
+<p><strong>Examples:</strong></p>
+<table class="contentstable" align="center">
+  <tr>
+    <td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("postfix") }}">Configuring Postfix</a><br/>
+      <span class="linkdescr">example configuration</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("exim") }}">Configuring Exim</a><br/>
+      <span class="linkdescr">example configuration</span></p>
+      </td><td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("backend") }}">Preparing the Backend</a><br/>
+      <span class="linkdescr">create the database, users, tables</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("roundcube") }}">Example Roundcube Plugin</a><br/>
+      <span class="linkdescr">minimal but usable php plugin</span></p>
+    </td>
+  </tr>
+</table>
+
+<p><strong>Meta information:</strong></p>
+<table class="contentstable" align="center">
+  <tr>
+    <td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("license") }}">License and Copyright</a><br />
+      <span class="linkdescr">how you may use the code</span></p>
+      </td><td width="50%">
+      <p class="biglink"><a class="biglink" href="{{ pathto("bugs") }}">Reporting bugs</a><br />
+      <span class="linkdescr">please inform us of any problems</span></p>
+    </td>
+  </tr>
+</table>
+{% endblock %}
+
+{#
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=10699425">Donate!</a>
+- We need your support :-)
+#}
+
+{% endblock %}
