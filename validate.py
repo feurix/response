@@ -84,7 +84,8 @@ INVALID_SENDER_RE = [
         re.compile(
         '''
         (?:
-            listserv
+            bugzilla
+        |   listserv
         |   mailman
         |   majordomo?
         )
@@ -382,6 +383,7 @@ INVALID_HEADER_NAME_RE = [
         re.compile('Resent-(?:Message-ID|Sender)', re.IGNORECASE),
 
         # Misc
+        re.compile('Auto-Submit', re.IGNORECASE),
         re.compile(
         '''
         X-
@@ -390,6 +392,7 @@ INVALID_HEADER_NAME_RE = [
         |   Cron
         |   Autore(?:sponse|ply)
         |   Auto-.+
+        |   Bugzilla
         )
         ''', re.VERBOSE | re.IGNORECASE),
 
