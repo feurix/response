@@ -1,16 +1,20 @@
-RESPONSE - The Response Project
-===============================
-Automatic / Out of Office / Vacation E-Mail Replies
+**********************
+Response documentation
+**********************
 
-Author:  John Feuerstein <john@feurix.com>
-License: GPLv3
+*Automatic / Out of Office / Vacation E-Mail Responder*
 
-First Release:   Version 0.1, Dec 2009
-Current Release: Version 0.5, Dec 2009
+    Author:  John Feuerstein <john@feurix.com>
 
-Development URL: https://labs.feurix.org/mail/response/
+    License: GPLv3
 
-Feel free to contribute! Clone the repo, send me pull requests, patches... :)
+    Project URL: http://feurix.org/projects/response/
+
+    Development URL: https://labs.feurix.org/mail/response/
+
+
+Feel free to contribute! Clone the repo, send me pull requests, patches, bugs
+reports, suggestions, critics... :)
 
 
 Description of Response
@@ -133,6 +137,17 @@ Response-notify is currently invoked by Cron and hence can run in custom
 intervals. However you want it.
 
 
+Response Cleanup
+----------------
+
+The cleanup component disables expired autoresponse configs (to get around
+lazy users forgetting about their responder or to implement a "expire" feature
+in the configuration front-end -- this is up to you).
+
+In addition, it can remove stale response records for already disabled
+response configs or help you to get rid of inactive response records.
+
+
 Security
 --------
 
@@ -158,4 +173,4 @@ Finally, if you have any comments, suggestions, critics, new validation
 filters, better SQL, whatever -- feel free to contribute. Thanks! :-)
 
 
-vim: tw=78
+.. vim: tw=78
