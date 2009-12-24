@@ -341,7 +341,7 @@ class Config(object):
     def __init__(self, file):
         # TODO: Parse file...
         self.backend = BackendConfig()
-        self.lmtp = LMTPConfig()
+        self.lmtpd = LMTPConfig()
         self.cleanup = CleanupConfig()
         self.notify = NotifyConfig()
 

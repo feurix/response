@@ -33,7 +33,7 @@ from config import Config
 from daemon import daemonize
 from pidfile import PidFile
 from optparse import OptionParser
-from lmtp import LMTPServer
+from lmtpd import LMTPServer
 
 # Option parsing
 version = '%prog version ' + __version__

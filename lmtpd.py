@@ -38,7 +38,7 @@ from validate import validate
 from record import record
 
 from logger import getModuleLog
-log = getModuleLog('lmtp')
+log = getModuleLog('lmtpd')
 
 
 class LMTPChannel(asynchat.async_chat):
@@ -267,7 +267,7 @@ class LMTPServer(SMTPServer):
     def __init__(self, config):
         asyncore.dispatcher.__init__(self)
 
-        self.config = config.lmtp
+        self.config = config.lmtpd
         self.backend = config.backend.adapter
 
         if self._socket.type == 'TCP':
