@@ -1,7 +1,14 @@
-Basic Roundcube plugin example for use with Response
-====================================================
+*****************************************
+Proof of concept Roundcube example plugin
+*****************************************
 
 Rouncube Webmailer: http://roundcube.net/
+
+`Roundcube webmail <http://roundcube.net/>`_ is a browser-based multilingual
+IMAP client with an application-like user interface. It provides full
+functionality you expect from an e-mail client, including MIME support, address
+book, folder manipulation, message searching and spell checking.
+
 
 
 Description
@@ -24,9 +31,9 @@ custom SQL queries for every operation.
 Installation
 ------------
 1) Place the vacation dir into the plugins/ folder of your roundcube install
-2) Enable the vacation plugin in config/main.inc.php:
+2) Enable the vacation plugin in config/main.inc.php::
 
-    $rcmail_config['plugins'] = array('vacation');
+   $rcmail_config['plugins'] = array('vacation');
 
 3) Open and adjust plugins/vacation/config.inc.php
 4) Be sure to fix the permissions for config.inc.php so that no one except
@@ -50,26 +57,26 @@ pretty easy, so please contribute one :-)
 Information about the original plugin
 -------------------------------------
 
-Contact information of the original author:
+Contact information of the original author::
 
     Jasper Slits <jaspersl@gmail.com>
     https://sourceforge.net/projects/rcubevacation/
 
-The original plugin documentation had the following additional notes:
+The original plugin documentation had the following additional notes::
 
-    Licensing
-    ----------
+    Licensing:
+
     This product is distributed under the GPL. Please read through the file
     LICENSE in Roundcube's root directory for more information about the
     license.
 
-    Credits
-    -------
+    Credits:
+
     The Postfixadmin team for creating the virtual vacation program.
     Peter Ruiter for his initial work on the plugin.
 
-    Patches,feedback and suggestions
-    --------------------------------
+    Patches,feedback and suggestions:
+
     Please submit patches and suggestions by e-mail (jaspersl @ gmail . com).
     Project URL: https://sourceforge.net/projects/rcubevacation/
     Feedback is always welcome.
