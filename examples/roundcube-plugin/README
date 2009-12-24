@@ -1,0 +1,76 @@
+Basic Roundcube plugin example for use with Response
+====================================================
+
+Rouncube Webmailer: http://roundcube.net/
+
+
+Description
+-----------
+This is a basic plugin example for roundcube. It is part of the Response
+project. Call it a proof of concept implementation to enable your users to
+configure their autoresponse settings.
+
+Basically it is a cleaned up and stripped down version of Jasper Slits'
+original work for the rcubevacation plugin project. The upstream version of
+the rcubevacation plugin this code is based on is 1.6.
+
+Changes to the code (if any except some cleanup) are commented in each of
+the source file headers.
+
+Most importantly, as with all parts regarding Response, you are free to use
+custom SQL queries for every operation.
+
+
+Installation
+------------
+1) Place the vacation dir into the plugins/ folder of your roundcube install
+2) Enable the vacation plugin in config/main.inc.php:
+
+    $rcmail_config['plugins'] = array('vacation');
+
+3) Open and adjust plugins/vacation/config.inc.php
+4) Be sure to fix the permissions for config.inc.php so that no one except
+   the user running roundcube (www-data, ...) can read it.
+
+
+Using
+-----
+After installing and activating the plugin, you will get a new tab in the
+account settings view: "Vacation", where the user may configure the Response
+autoresponse_config records. As of now, they may enabled/disable the response,
+set a custom subject and a custom message.
+
+
+Localization
+------------
+We ship the native en_US texts as well as de_DE. The translation should be
+pretty easy, so please contribute one :-)
+
+
+Information about the original plugin
+-------------------------------------
+
+Contact information of the original author:
+
+    Jasper Slits <jaspersl@gmail.com>
+    https://sourceforge.net/projects/rcubevacation/
+
+The original plugin documentation had the following additional notes:
+
+    Licensing
+    ----------
+    This product is distributed under the GPL. Please read through the file
+    LICENSE in Roundcube's root directory for more information about the
+    license.
+
+    Credits
+    -------
+    The Postfixadmin team for creating the virtual vacation program.
+    Peter Ruiter for his initial work on the plugin.
+
+    Patches,feedback and suggestions
+    --------------------------------
+    Please submit patches and suggestions by e-mail (jaspersl @ gmail . com).
+    Project URL: https://sourceforge.net/projects/rcubevacation/
+    Feedback is always welcome.
+

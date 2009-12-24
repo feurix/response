@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title><roundcube:object name="pagetitle" /></title>
+<roundcube:include file="/includes/links.html" />
+
+<script type="text/javascript" src="/functions.js"></script>
+<style type="text/css">
+#vacationpage
+{
+  width: 600px;
+  margin-top: 95px;
+  border: 1px solid #999999;
+  margin-left: auto;
+  margin-right: auto;
+
+}
+
+#prefs-details
+{
+  padding-left: 20px;
+}
+
+#prefs-details td
+{
+ padding-left: 20px;
+}
+
+#prefs-details td.title
+{
+  text-align: right;
+}
+
+</style>
+
+</head>
+<body>
+
+<roundcube:include file="/includes/taskbar.html" />
+<roundcube:include file="/includes/header.html" />
+<roundcube:include file="/includes/settingstabs.html" />
+<div id="vacationpage">
+<div id="prefs-title" class="boxtitle"><roundcube:label name="vacation.headline" /></div>
+<form name="vacationform" action="./?_task=settings&amp;_action=plugin.vacation-save" method="post">
+<div id="prefs-details" class="boxcontent">
+<roundcube:object name="plugin.vacation_form" />
+<roundcube:container name="userprefs" id="userprefscontainer" />
+</div>
+<div id="formfooter">
+<div class="footerleft">
+<roundcube:button command="plugin.vacation-save" type="input" class="button mainaction" label="save" title="save" />
+</div>
+</div>
+</form>
+</div>
+
+</body>
+</html>
