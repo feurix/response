@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-'''Response Project - Header Validation'''
+'''Response Project - Message Validation'''
 
 # Copyright (C) 2009 John Feuerstein <john@feurix.com>
 #
@@ -32,15 +32,14 @@ log = getModuleLog(__name__)
 # Note for all regexps: We match _after_ parsing the message headers.
 # No need to test for None, match space or a trailing colon in header names.
 
-#
-# List of INVALID SENDER regular expressions, matched against the sender
-# address as given in the protocol command channel, using "MAIL FROM".
-#
-INVALID_SENDER_RE = [
 
-        # The null sender, used for automated warnings, errors, notifications
-        # and other stuff that should not be replied to.
-        re.compile('<>'),
+# The following lists of address matching regular expressions can be re-used
+# later in different validation contexts:
+
+#
+# List of administrative e-mail address-regexps
+#
+MATCH_ADMIN_ADDRESS_RE = [
 
         # Mailer daemons
         re.compile('MAILER[-_]?(?:DAEMON)?@', re.IGNORECASE),
@@ -58,7 +57,6 @@ INVALID_SENDER_RE = [
                 admin
             )
         |   abuse
-        |   bounce
         |   daemon
         |   server
         |   httpd?
@@ -80,20 +78,38 @@ INVALID_SENDER_RE = [
         # Relays
         re.compile('.*-?(?:OUTGOING|RELAY)@', re.IGNORECASE),
 
-        # Mailinglists
+] # end of admin address regexps
+
+#
+# List of mailinglist e-mail address-regexps
+#
+MATCH_LIST_ADDRESS_RE = [
+
+        # Bugzillas and the like
         re.compile(
         '''
         (?:
             bugzilla
-        |   listserv
+        |   trac
+        )
+        @
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # Mailinglists
+        re.compile(
+        '''
+        (?:
+            listserv
         |   mailman
         |   majordomo?
         )
         @
         ''', re.VERBOSE | re.IGNORECASE),
+
+        # Mailinglist commands
         re.compile(
         r'''
-        .*- # start of suffix
+        .*-         # start of suffix
         (?:
             admin
         |   bounces?
@@ -104,11 +120,19 @@ INVALID_SENDER_RE = [
         |   requests?
         |   (?:un)?subscribe
         )
-        (?:\+.*)?
+        (?:\+.*)?   # optional address extension
         @
         ''', re.VERBOSE | re.IGNORECASE),
 
-        # Obvious cases...
+] # end of mailing list regexps
+
+
+#
+# List of obvious "do-not-reply" e-mail address-regexps
+#
+MATCH_NOREPLY_ADDRESS_RE = [
+
+        # ...@
         re.compile(
         '''
         (:?do)?
@@ -124,16 +148,125 @@ INVALID_SENDER_RE = [
         @
         ''', re.VERBOSE | re.IGNORECASE),
 
-        #
-        # *** Regular expressions you might want to change ***
-        #
-        # Remember:
-        #
-        #  One autoresponse less is better than one too much! :-)
-        #
+] # end of noreply address regexps
+
+
+#
+# List of e-mail address-regexps for other automated services
+#
+MATCH_AUTOMATED_ADDRESS_RE = [
+
+        # Newsletters
+        re.compile('.*news.*', re.IGNORECASE),
+
+        # Automated mail
+        re.compile(
+        '''
+        .*
+        (?:
+            info(?:rmation)?
+        |   bounce
+        |   cron
+        |   robot
+        |   report
+        |   error
+        |   counter
+        |   sms
+        |   reminder
+        |   system
+        |   status
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+] # end of other automated address regexps
+
+
+#
+# List of business e-mail address-regexps
+#
+MATCH_BUSINESS_ADDRESS_RE = [
+
+       # Non-personal / Business mail
+        re.compile(
+        '''
+        .*
+        (?:
+            shop
+        |   invoice
+        |   sales
+        |   legal
+        |   support
+        |   service
+        |   ticket
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        # German variants
+        re.compile(
+        '''
+        .*
+        (?:
+            rechnung
+        |   bestell
+        |   (?:be)?zahl
+        |   (?:ver)?warnung
+        |   versend
+        |   versand
+        |   bestaetig
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+] # end of business address regexps
+
+
+#
+# List of community e-mail address-regexps
+#
+MATCH_COMMUNITY_ADDRESS_RE = [
+
+        # Password / Account stuff
+        re.compile(
+        '''
+        .*
+        (?:
+            password
+        |   account
+        |   reset
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+        re.compile(
+        '''
+        .*
+        (?:
+            community
+        |   board
+        |   blog
+        |   forum
+        |   picture
+        |   upload
+        )
+        .*
+        ''', re.VERBOSE | re.IGNORECASE),
+
+] # end of community address regexps
+
+
+#
+# List of INVALID SENDER regular expressions, matched against the sender
+# address as given in the protocol command channel, using "MAIL FROM".
+#
+INVALID_SENDER_RE = [
+
+        # The null sender, used for automated warnings, errors, notifications
+        # and other stuff that should not be replied to.
+        re.compile('<>'),
 
         # Sender domains
-        # http://en.wikipedia.org/wiki/List_of_social_networking_websites
         re.compile(
         '''
         .*
@@ -179,181 +312,42 @@ INVALID_SENDER_RE = [
         .*
         ''', re.VERBOSE | re.IGNORECASE),
 
-        # Newsletters
-        re.compile('.*news.*', re.IGNORECASE),
-
-        # Automated mail
-        re.compile(
-        '''
-        .*
-        (?:
-            info(?:rmation)?
-        |   cron
-        |   robot
-        |   report
-        |   error
-        |   counter
-        |   sms
-        |   reminder
-        |   system
-        |   status
-        )
-        .*
-        ''', re.VERBOSE | re.IGNORECASE),
-
-        # Non-personal / Business mail
-        re.compile(
-        '''
-        .*
-        (?:
-            shop
-        |   invoice
-        |   sales
-        |   legal
-        |   support
-        |   service
-        |   ticket
-        )
-        .*
-        ''', re.VERBOSE | re.IGNORECASE),
-
-        # Password / Account stuff
-        re.compile(
-        '''
-        .*
-        (?:
-            password
-        |   account
-        |   reset
-        )
-        .*
-        ''', re.VERBOSE | re.IGNORECASE),
-
-        # Community
-        re.compile(
-        '''
-        .*
-        (?:
-            community
-        |   board
-        |   blog
-        |   forum
-        |   picture
-        |   upload
-        )
-        .*
-        ''', re.VERBOSE | re.IGNORECASE),
-
-        # German variants
-        re.compile(
-        '''
-        .*
-        (?:
-            rechnung
-        |   bestell
-        |   (?:be)?zahl
-        |   (?:ver)?warnung
-        |   versend
-        |   versand
-        |   bestaetig
-        )
-        .*
-        ''', re.VERBOSE | re.IGNORECASE),
-
 ] # end of sender regexps
 
+# Add unwanted addresses to the list
+INVALID_SENDER_RE.extend(MATCH_ADMIN_ADDRESS_RE)
+INVALID_SENDER_RE.extend(MATCH_LIST_ADDRESS_RE)
+INVALID_SENDER_RE.extend(MATCH_NOREPLY_ADDRESS_RE)
+INVALID_SENDER_RE.extend(MATCH_AUTOMATED_ADDRESS_RE)
+INVALID_SENDER_RE.extend(MATCH_BUSINESS_ADDRESS_RE)
+INVALID_SENDER_RE.extend(MATCH_COMMUNITY_ADDRESS_RE)
 
 
 #
 # List of INVALID RECIPIENT regular expressions, matched against the recipient
 # address as given in the protocol command channel, using "RCPT TO".
 #
-# Add all of your local addresses here that won't ever configure an
-# autoresponse.
+# Add all of your local addresses here that you don't want anyone to configure
+# an autoresponse for. The best way to do this is to disallow configuring them
+# for certain mailboxes in the configuration front-end (webmailer, etc.).
+# Use this as a hardcoded exception list...
 INVALID_RECIPIENT_RE = [
 
-        # Mailer daemons
-        re.compile('MAILER[-_]?(?:DAEMON)?@', re.IGNORECASE),
-
-        # Administrative
-        re.compile(
-        '''
-        (?:
-            (?:
-                (?:
-                    dns
-                |   ssl
-                )?
-                -?
-                admin
-            )
-            abuse
-        |   bounce
-        |   daemon
-        |   server
-        |   httpd?
-        |   www-?(?:data)?
-        |   root
-        |   nobody
-        |   (?:
-                (?:
-                    host
-                |   post
-                |   web
-                )
-                master
-            )
-        )
-        @
-        ''', re.VERBOSE | re.IGNORECASE),
-
-        # Relays
-        re.compile('.*-?(?:OUTGOING|RELAY)@', re.IGNORECASE),
-
-        # Mailinglists
-        re.compile(
-        '''
-        (?:
-            listserv
-        |   mailman
-        |   majordomo?
-        )
-        @
-        ''', re.VERBOSE | re.IGNORECASE),
-        re.compile(
-        r'''
-        .*- # start of suffix
-        (?:
-            admin
-        |   bounces?
-        |   confirm
-        |   join
-        |   leave
-        |   owners?
-        |   requests?
-        |   (?:un)?subscribe
-        )
-        (?:\+.*)?
-        @
-        ''', re.VERBOSE | re.IGNORECASE),
-
-        # Obvious cases...
-        re.compile(
-        '''
-        (:?do)?
-        .*
-        not?
-        .*
-        (?:
-            reply
-        |   return
-        |   answere?s?
-        )
-        .*
-        @
-        ''', re.VERBOSE | re.IGNORECASE),
+        # Temporarily disable auto-responses for @example.com,
+        # even if some of the mailboxes have them configured already.
+        # Note that this will only stop us from recording new responses,
+        # not from delivering already queued responses.
+        #re.compile('.*@example.com', re.IGNORECASE),
 
 ] # end of recipient regexps
+
+# Add unwanted addresses to the list
+INVALID_RECIPIENT_RE.extend(MATCH_ADMIN_ADDRESS_RE)
+INVALID_RECIPIENT_RE.extend(MATCH_LIST_ADDRESS_RE)
+INVALID_RECIPIENT_RE.extend(MATCH_NOREPLY_ADDRESS_RE)
+INVALID_RECIPIENT_RE.extend(MATCH_AUTOMATED_ADDRESS_RE)
+INVALID_RECIPIENT_RE.extend(MATCH_BUSINESS_ADDRESS_RE)
+INVALID_RECIPIENT_RE.extend(MATCH_COMMUNITY_ADDRESS_RE)
 
 
 #
@@ -492,9 +486,7 @@ def validate_headers(message):
     '''Header validation:
 
     Given a parsed message object, validate if this message may trigger
-    an autoresponse.
-
-    Return: True if yes, False if not'''
+    an autoresponse.'''
 
     invalid_header = (None, None)
     valid = True
@@ -538,9 +530,7 @@ def validate_recipient(manager, message):
     '''Recipient validation:
 
     Given a parsed message object, validate if the local recipient has
-    configured and enabled an auto-response.
-
-    Return: True if yes, False if not'''
+    configured and enabled an auto-response.'''
 
     recipient = message.get_unixto()
     valid = True
@@ -579,9 +569,7 @@ def validate_sender(message):
     '''Sender validation:
 
     Given a parsed message object, validate if the sender may receive
-    an auto-response.
-
-    Return True if yes, False if not'''
+    an auto-response.'''
 
     sender = message.get_unixfrom()
     valid = True
