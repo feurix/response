@@ -22,11 +22,9 @@
 
 from globals import __author__, __copyright__, __license__, __version__
 
-from sockets import TcpClientSocket, TcpServerSocket, UnixClientSocket
-from backend import MySQL, PostgreSQL
-
 
 class LMTPConfig(object):
+    from sockets import TcpServerSocket
 
     # Where should we listen? Only TcpServerSockets supported.
     socket = TcpServerSocket(host='127.0.0.1', port=10024)
@@ -110,6 +108,8 @@ class LMTPConfig(object):
 
 
 class BackendConfig(object):
+    from sockets import TcpClientSocket, UnixClientSocket
+    from backend import MySQL, PostgreSQL
 
     # Instructions for the backend adapter on how to connect.
     # Possible sockets: TcpClientSocket, UnixClientSocket
@@ -136,10 +136,15 @@ class BackendConfig(object):
 
     # TODO: Implement backend adapter and write queries.
 
-    #adapter = PostgreSQL()
+    #adapter = PostgreSQL
     #query_validate_recipient_enabled = False
     #query_validate_recipient = ''
     #query_record_response = ''
+    #query_pending_responses = ''
+    #query_update_sent_timestamp = ''
+    #query_disable_expired_configs = ''
+    #query_delete_old_response_records = ''
+    #query_delete_records_of_disabled_configs = ''
 
 
     #
