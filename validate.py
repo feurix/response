@@ -26,7 +26,7 @@ import re
 import exception
 
 from logger import getModuleLog
-log = getModuleLog('validate')
+log = getModuleLog(__name__)
 
 
 # Note for all regexps: We match _after_ parsing the message headers.

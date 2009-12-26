@@ -28,7 +28,7 @@ import exception
 from helpers import prepare_filepath
 
 from logger import getModuleLog
-log = getModuleLog('pidfile')
+log = getModuleLog(__name__)
 
 
 PID_MIN = 2

@@ -27,7 +27,7 @@ import exception
 from datetime import datetime
 
 from logger import getModuleLog
-log = getModuleLog('backend')
+log = getModuleLog(__name__)
 
 
 class DatabaseBackend(object):

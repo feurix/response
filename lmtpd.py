@@ -38,7 +38,7 @@ from validate import validate
 from record import record
 
 from logger import getModuleLog
-log = getModuleLog('lmtpd')
+log = getModuleLog(__name__)
 
 
 class LMTPChannel(asynchat.async_chat):

@@ -39,7 +39,7 @@ import sys
 import exception
 
 from logger import getModuleLog
-log = getModuleLog('daemon')
+log = getModuleLog(__name__)
 
 
 # Initial configuration

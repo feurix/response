@@ -25,7 +25,7 @@ from globals import __author__, __copyright__, __license__, __version__
 import exception
 
 from logger import getModuleLog
-log = getModuleLog('record')
+log = getModuleLog(__name__)
 
 
 def record_response(manager, message):

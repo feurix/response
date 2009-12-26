@@ -23,7 +23,7 @@
 from globals import __author__, __copyright__, __license__, __version__
 
 from logger import getModuleLog
-log = getModuleLog('exception')
+log = getModuleLog(__name__)
 
 
 class Error(Exception):
