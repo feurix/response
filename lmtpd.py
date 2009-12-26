@@ -51,7 +51,7 @@ class LMTPChannel(asynchat.async_chat):
     COMMAND_TERMINATOR = '\r\n'
     DATA_TERMINATOR = '\r\n.\r\n'
 
-    def __init__(self, server, conn, addr, backend):
+    def __init__(self, server, conn, addr):
         log.debug('>>> OPEN <LMTPChannel at %#x>' % id(self))
         asynchat.async_chat.__init__(self, conn)
         self.__server = server
@@ -62,7 +62,7 @@ class LMTPChannel(asynchat.async_chat):
         self.__peer = conn.getpeername()
 
         try:
-            self.__backend_manager = Manager(backend)
+            self.__backend_manager = Manager(server.backend)
             self.__backend_manager.connect()
         except exception.DatabaseError, e:
             # We handle this later (smtp_RCPT) where the protocol
@@ -268,7 +268,7 @@ class LMTPServer(SMTPServer):
         asyncore.dispatcher.__init__(self)
 
         self.config = config.lmtpd
-        self.backend = config.backend.adapter
+        self.backend = config.backend.adapter(config.backend)
 
         if self._socket.type == 'TCP':
             self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -309,5 +309,5 @@ class LMTPServer(SMTPServer):
             log.warning('Unknown connection from %s denied.' % addr[0])
             return
         log.debug('Accepted new connection from %s' % addr[0])
-        channel = LMTPChannel(self, conn, addr, self.backend)
+        channel = LMTPChannel(self, conn, addr)
 

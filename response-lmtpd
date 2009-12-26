@@ -134,30 +134,35 @@ except exception.PidFileError, e:
 
 log.warning('Daemon PID=%d' % pid.pid)
 
-while True:
-    try:
-        run_server()
-    except exception.SignalReceived, s:
-        log.info('Daemon received signal %d (%s)' % (s.signum, s.signame))
-        if s.signum == signal.SIGHUP:
-            log.warning('Restarting server with new configuration')
-            time.sleep(1)
-        elif s.signum == signal.SIGINT or s.signum == signal.SIGTERM:
-            log.warning('Doing a graceful shutdown...')
-            break
-    except exception.BackendError, e:
-        log.error('Server died due to backend problems: %s' % e)
-        log.error('Restarting server in 10 seconds...')
-        time.sleep(10)
-    except Exception, e:
-        log.error('Unhandled exception: %s' % e)
-        log.error('Restarting server in 5 seconds...')
-        time.sleep(5)
+ret = 0
+try:
+    while True:
+        try:
+            run_server()
+        except exception.SignalReceived, s:
+            log.info('Daemon received signal %d (%s)' % (s.signum, s.signame))
+            if s.signum == signal.SIGHUP:
+                log.warning('Restarting server with new configuration')
+                time.sleep(1)
+            elif s.signum == signal.SIGINT or s.signum == signal.SIGTERM:
+                log.warning('Doing a graceful shutdown...')
+                break
+        except exception.BackendError, e:
+            log.error('Server died due to backend problems: %s' % e)
+            log.error('Restarting server in 10 seconds...')
+            time.sleep(10)
+        except Exception, e:
+            log.error('Unhandled exception: %s' % e)
+            log.error('Restarting server in 5 seconds...')
+            time.sleep(5)
+except:
+    # Some unhandled exception while looping
+    ret = 1
+finally:
+    log.debug('Cleaning up...')
+    pid.delete()
 
-log.debug('Cleaning up...')
-pid.delete()
 log.info('Daemon shutdown.')
-
 log.warning('Quit.')
-sys.exit(0)
+sys.exit(ret)
 

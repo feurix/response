@@ -89,9 +89,6 @@ class DatabaseBackend(object):
     def delete_records_of_disabled_configs(self, cursor):
         raise exception.NotImplemented
 
-    def __del__(self):
-        self.disconnect()
-
 
 class PostgreSQL(DatabaseBackend):
     '''PostgreSQL Backend Adapter'''

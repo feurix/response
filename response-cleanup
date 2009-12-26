@@ -134,7 +134,7 @@ except exception.PidFileError, e:
 log.warning('Running with PID=%d' % pid.pid)
 
 config = Config(options.config_file)
-backend = config.backend.adapter
+backend = config.backend.adapter(config.backend)
 ret = 0
 
 if options.dryrun:
