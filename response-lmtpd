@@ -106,8 +106,11 @@ def run_server():
         log.error('Server-Init: %s' % e)
         raise
     finally:
-        server.shutdown()
-        server.close()
+        try:
+            server.shutdown()
+            server.close()
+        except:
+            pass
 
 
 # Main
