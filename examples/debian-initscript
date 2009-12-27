@@ -16,7 +16,7 @@ DESC="Response LMTP daemon"
 NAME=response-lmtpd
 DAEMON=/opt/response/$NAME
 DAEMON_ARGS="--debug --syslog --syslog-facility=MAIL"
-PIDFILE=/var/run/response/$NAME.pid
+PIDFILE=/var/run/response/lmtpd.pid
 SCRIPTNAME=/etc/init.d/$NAME
 EXTRA_ARGS="--user response --chuid response"
 
