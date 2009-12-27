@@ -150,7 +150,7 @@ class LMTPChannel(asynchat.async_chat):
             self.push('250 Ok')
 
     #
-    # Internal helper
+    # Internal helpers
     #
 
     def __getaddr(self, keyword, arg):
@@ -165,9 +165,15 @@ class LMTPChannel(asynchat.async_chat):
         return address
 
     def __parse_recipient(self, address):
-        match = re.match(server.config.RECIPIENT_ADDRESS_REWRITE_RE, address)
-        if match:
-            return '%s@%s' % (match.group('user'), match.group('domain'))
+        match = re.match(self.__server.config.RECIPIENT_ADDRESS_REWRITE_RE,
+                address)
+
+        if not match:
+            self.push('501 5.5.2 Unknown recipient address format: %s'
+                    % address)
+            return
+
+        return '%s@%s' % (match.group('user'), match.group('domain'))
 
 
     #
@@ -229,7 +235,6 @@ class LMTPChannel(asynchat.async_chat):
         address = self.__parse_recipient(address)
 
         if not address:
-            self.push('501 5.5.2 Syntax: RCPT TO: <address>')
             return
 
         # Bail out if configured to do so...
