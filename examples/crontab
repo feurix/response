@@ -1,0 +1,10 @@
+PATH=/opt/response:/usr/bin
+
+# m  h      dom mon dow user        cmd
+
+*/10 *      *   *   *   response    response-notify --debug --syslog -L 100
+
+0,30 *      *   *   *   response    response-cleanup --debug --syslog --disable-expired-configs
+12   1      *   *   *   response    response-cleanup --debug --syslog --delete-old-response-records
+12   2      *   *   *   response    response-cleanup --debug --syslog --delete-unused-response-records
+
