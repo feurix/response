@@ -9,6 +9,16 @@ This is a brief overview of the changes introduced by each version.
 For the full changelog, `look here <https://labs.feurix.org/mail/response/log/>`_.
 
 
+.. _new-in-version-0.7:
+
+New in Response version 0.7
+---------------------------
+
+- Initial implementation of the global configuration file
+- New groups of validation related regular expressions
+- Recipient address rewriting based on a grouping regular expression
+
+
 .. _new-in-version-0.6:
 
 New in Response version 0.6
