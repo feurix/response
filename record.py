@@ -6,7 +6,7 @@
 #
 # This file is part of the response project.
 #
-# Repsonse is free software; you can redistribute it and/or modify
+# Response is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
@@ -45,7 +45,7 @@ def record_response(manager, message):
 
     try:
         manager.record_response(sender, recipient)
-        log.debug('Repsonse record successful!')
+        log.debug('Response record successful!')
     except Exception, e:
         log.debug('Response record failed!')
         raise exception.RecordResponseError(
