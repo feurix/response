@@ -21,7 +21,7 @@ John
 ''')
 
 msg['From'] = sys.argv[1]
-msg['To'] = sys.argv[2]
+msg['To'] = sys.argv[2].split('@',1)[0].replace('#','@')
 msg['Subject'] = sys.argv[3]
 
 try:
