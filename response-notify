@@ -180,7 +180,7 @@ try:
                         port=config.notify.smtp_port,
                 )
 
-                if config.notify.starttls:
+                if config.notify.smtp_starttls:
                     relay.starttls()
                     relay.ehlo()
 

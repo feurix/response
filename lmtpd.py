@@ -23,6 +23,7 @@
 from globals import __author__, __copyright__, __license__, __version__
 
 import os
+import re
 import sys
 import socket
 import asyncore
@@ -163,6 +164,11 @@ class LMTPChannel(asynchat.async_chat):
                 address = address[1:-1]
         return address
 
+    def __parse_recipient(self, address):
+        match = re.match(server.config.RECIPIENT_ADDRESS_REWRITE_RE, address)
+        if match:
+            return '%s@%s' % (match.group('user'), match.group('domain'))
+
 
     #
     # Protocol Commands
@@ -220,7 +226,7 @@ class LMTPChannel(asynchat.async_chat):
 
         # Normalize recipient address
         address = self.__getaddr('TO:', arg)
-        address = self.__server.config.parse_recipient(address)
+        address = self.__parse_recipient(address)
 
         if not address:
             self.push('501 5.5.2 Syntax: RCPT TO: <address>')
