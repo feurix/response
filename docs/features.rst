@@ -16,6 +16,8 @@ In all tools
 - Error and signal handling, graceful dying
 - Logging with various log-levels
 - Syslog support
+- Config file support
+- Dry-Run mode (useful in combination with debug logging)
 
 
 .. _implemented-in-lmtpd:
@@ -28,7 +30,8 @@ Response-LMTPd
 - Recipient validation using regular expressions and/or backend lookups
 - Message header name validation using regular expressions
 - Message header value validation using regular expressions
-- Time-based rate limiting (one response to the same recipient per n seconds)
+- Time-based queue limiting (one response to the same recipient per n seconds)
+- Configuration reload on SIGHUP
 
 
 .. _implemented-in-cleanup:
@@ -51,13 +54,20 @@ Response-Notify
 - Limiting generation of response mails
 
 
+.. _implemented-extras:
+
+Extras
+------
+- Roundcube plugin
+
+
 .. _started:
 
 Started
 =======
 
-- PostgreSQL backend adapter
-- Roundcube plugin
+- Debian / Ubuntu Packaging
+- Initscripts
 
 
 .. _pending:
@@ -65,9 +75,8 @@ Started
 Pending
 =======
 
-- Initscripts
-- Config file
-- Debian / Ubuntu Packaging
+- PostgreSQL backend adapter
+- PostgreSQL example database schema and queries
 - Gentoo Ebuild
 - RPM Spec
 - Exim examples
