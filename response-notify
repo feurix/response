@@ -216,7 +216,7 @@ try:
 
             sender_name = None
             sender_address = response['sender']
-            recipient = response['recipient']
+            recipient = '<%s>' % response['recipient']
 
             log.warning('[%d] %s -> %s (record id: %d)'
                     % (i, sender_address, recipient, id))
