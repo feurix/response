@@ -236,8 +236,6 @@ try:
                 subject = config.notify.message_header_subject_prefix \
                         + subject
 
-            sender = sender.encode(CHARSET)
-            recipient = recipient.encode(CHARSET)
             subject = subject.encode(CHARSET)
             message = message.encode(CHARSET)
 
@@ -251,9 +249,8 @@ try:
                 # header using this address.
                 message.set_unixfrom(config.notify.smtp_envelope_from)
 
-                # Mandatory headers possibly containing special characters
-                message['From'] = Header(sender, CHARSET)
-                message['To'] = Header(recipient, CHARSET)
+                message['To'] = recipient
+                message['From'] = sender
                 message['Subject'] = Header(subject, CHARSET)
 
                 # Loop prevention using special headers in addition to a sane
