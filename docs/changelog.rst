@@ -9,6 +9,16 @@ This is a brief overview of the changes introduced by each version.
 For the full changelog, `look here <https://labs.feurix.org/mail/response/log/>`_.
 
 
+.. _new-in-version-0.8:
+
+New in Response version 0.8
+---------------------------
+
+- Initscript for Debian-like systems
+- Installation instructions and better examples
+- Crontab example for response-notify and response-cleanup
+
+
 .. _new-in-version-0.7:
 
 New in Response version 0.7
