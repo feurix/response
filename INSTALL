@@ -1,34 +1,75 @@
+*********************
 Response Installation
-=====================
+*********************
 
 Dependencies
-------------
+============
 
-All in one primer for Debian-like systems:
+All in one primer for Debian-like systems::
 
     $ sudo aptitude install python python-{mysqldb,sqlalchemy}
 
-
-* Python 2.6 or later (no Python 3 support planned yet)
-  http://www.python.org/
-
-  $ sudo aptitude install python
-
-* MySQLdb (Python interface to the MySQL server)
-  http://mysql-python.sourceforge.net/
-
-  $ sudo aptitude install python-mysqldb
-
-* SQLAlchemy (used only for connection pooling)
-  http://www.sqlalchemy.org/
-
-  $ sudo aptitude install python-sqlalchemy
+* `Python 2.6 <http://python.org/>`_ or later (no Python 3 support planned yet)
+* `MySQLdb <http://mysql-python.sourceforge.net/>`_
+  (Python interface to the MySQL server)
+* `SQLAlchemy <http://www.sqlalchemy.org/>`_ (used only for connection pooling)
 
 
-Installation
-------------
+Installation using Git on Debian-like systems
+=============================================
 
-TODO
+1. Prepare the database backend, see :ref:`backend`
+2. Install the roundcube plugin, see :ref:`roundcube`
+3. Install the response-suite::
+
+    $ sudo -i
+    $ aptitude install git-core
+    $ aptitude install python python-{mysqldb,sqlalchemy}
+    $ useradd --system --home-dir /nonexistant --shell /bin/false response
+    $ git clone git://labs.feurix.org/feurix/mail/response /opt/response
+    $ cd /opt/response
+    $ cp response.cfg /etc/
+    $ mkdir -p /var/run/response
+    $ chown response:response /etc/response.cfg /var/run/response
+    $ chmod 600 /etc/response.cfg
+    $ chmod 700 /var/run/response
+
+    $ cp examples/debian-initscript /etc/init.d/response-lmtpd
+    $ chmod 755 /etc/init.d/response-lmtpd
+
+    # edit /etc/response.cfg
+
+4. Watch the log while starting the lmtpd daemon::
+
+    $ tail -f /var/log/mail.log
+    $ /etc/init.d/response-lmtpd start
+
+5. If everything is fine, go configure Postfix. See :ref:`postfix`
+6. Edit the init script and drop --debug, then restart it.
+7. Try running response-notify and response-cleanup, get used to them.
+8. Schedule running response-notify and response-cleanup using Cron, take
+   a look at the crontab example. (e.g. /etc/cron.d/response)::
+
+    $ cp examples/crontab /etc/cron.d/response
+    # edit /etc/cron.d/response
 
 
-vim: tw=78
+Update
+------
+
+Update using Git::
+
+    $ cd /opt/response
+    $ git pull
+    $ /etc/init.d/response-lmtpd restart
+
+
+Customize
+---------
+
+If you want to change any of the code, for example the validation code::
+
+    $ cd /opt/response
+    $ git checkout -b my-changes
+    # edit validate.py and others...
+

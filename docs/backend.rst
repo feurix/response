@@ -1,6 +1,5 @@
 .. _backend:
 
-
 ******************************
 Example backend configurations
 ******************************

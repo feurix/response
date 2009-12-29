@@ -9,6 +9,7 @@
    features.rst
    faq.rst
    readme.rst
+   install.rst
    postfix.rst
    exim.rst
    backend.rst

@@ -59,6 +59,7 @@ Response-Notify
 Extras
 ------
 - Roundcube plugin
+- Initscript for Debian-like systems
 
 
 .. _started:
@@ -66,8 +67,7 @@ Extras
 Started
 =======
 
-- Debian / Ubuntu Packaging
-- Initscripts
+- ...
 
 
 .. _pending:
@@ -75,6 +75,7 @@ Started
 Pending
 =======
 
+- Debian / Ubuntu Packaging
 - PostgreSQL backend adapter
 - PostgreSQL example database schema and queries
 - Gentoo Ebuild
