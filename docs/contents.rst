@@ -7,7 +7,7 @@
    index.rst
    changelog.rst
    features.rst
-   faq.rst
+   config.rst
    readme.rst
    install.rst
    postfix.rst
