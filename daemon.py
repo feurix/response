@@ -2,7 +2,7 @@
 
 '''Response Project - Daemonizing'''
 
-# Copyright (C) 2009 John Feuerstein <john@feurix.com>
+# Copyright (C) 2009-2010 John Feuerstein <john@feurix.com>
 #
 # This file is part of the response project.
 #
