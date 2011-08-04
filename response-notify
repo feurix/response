@@ -32,7 +32,7 @@ from email.header import Header
 from email.message import Message
 from email.mime.text import MIMEText
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from config import Config
 from pidfile import PidFile
 from optparse import OptionParser
@@ -157,12 +157,7 @@ try:
     try:
         relay = SMTP(timeout=config.notify.smtp_timeout)
 
-        date = datetime.now() - timedelta(
-                seconds=config.notify.required_timedelta)
-        log.info('Not creating any successive autoresponse for already sent ' \
-                 'responses after: %s' % date)
-
-        rows = backend.get_pending_responses(cursor, date, options.limit)
+        rows = backend.get_pending_responses(cursor, options.limit)
         if rows < 1:
             log.warning('No pending responses found.')
             raise exception.ProcessError('Nothing to do')

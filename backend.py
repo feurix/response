@@ -74,7 +74,7 @@ class DatabaseBackend(object):
     def record_response(self, cursor, sender, recipient):
         raise exception.NotImplemented
 
-    def get_pending_responses(self, cursor, date, limit):
+    def get_pending_responses(self, cursor, limit):
         raise exception.NotImplemented
 
     def update_sent_timestamp(self, cursor, id, date):
@@ -230,11 +230,10 @@ class MySQL(DatabaseBackend):
                     % (sender, recipient, e))
             raise
 
-    def get_pending_responses(self, cursor, date, limit):
+    def get_pending_responses(self, cursor, limit):
         try:
             return self.query(cursor, self.config.query_pending_responses,
                     {
-                        'date': date,
                         'limit': limit,
                     })
         except Exception, e:

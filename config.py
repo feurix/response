@@ -59,7 +59,6 @@ class BackendConfig(object):
     query_delete_records_of_disabled_configs = ''
 
 class NotifyConfig(object):
-    required_timedelta = 60 * 60 * 24 * 7  # 1 week
     smtp_host = '127.0.0.1'
     smtp_port = 25
     smtp_timeout = 20
@@ -75,7 +74,7 @@ class NotifyConfig(object):
     message_header_subject_prefix = None
 
 class CleanupConfig(object):
-    delete_records_with_last_hit_before = 60 * 60 * 24 * 7  # 1 week
+    timedelta = 60 * 60 * 24 * 7  # 1 week
 
 
 class Config(object):
@@ -152,8 +151,6 @@ class Config(object):
         config.smtp_username = config_file.get(section, 'SMTP_USERNAME')
         config.smtp_password = config_file.get(section, 'SMTP_PASSWORD')
         config.smtp_starttls = config_file.getboolean(section, 'SMTP_STARTTLS')
-        config.required_timedelta = \
-                config_file.getint(section, 'REQUIRED_TIMEDELTA')
         config.smtp_envelope_from = \
                 config_file.get(section, 'SMTP_ENVELOPE_FROM')
         config.message_charset = \
@@ -172,7 +169,5 @@ class Config(object):
         config = self.cleanup
         config_file = self.config
 
-        config.delete_records_with_last_hit_before = \
-                config_file \
-                .getint(section, 'DELETE_RECORDS_WITH_LAST_HIT_BEFORE')
+        config.timedelta = config_file.getint(section, 'TIMEDELTA')
 

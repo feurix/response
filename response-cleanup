@@ -164,8 +164,8 @@ try:
 
         if options.delete_old_response_records:
             log.warning('Deleting old response records')
-            date = datetime.now() - timedelta(seconds=config.cleanup
-                    .delete_records_with_last_hit_before)
+            date = datetime.now() - timedelta(
+                    seconds=config.cleanup.timedelta)
             log.debug('Matching records with inactivity since %s' % date)
             if not options.dryrun:
                 backend.delete_old_response_records(cursor, date)
